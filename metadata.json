@@ -1,0 +1,6 @@
+{
+  "name": "MKMODZ Premium Terminal",
+  "description": "A highly designed, elite dark cyberpunk terminal and mod console featuring real-time Firebase syncing, sleek diagnostic displays, scanlines, and neon status gauges.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

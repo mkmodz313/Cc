@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+/* Custom Utilities and Keyframes for Cyber Theme */
+@keyframes cyber-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4), inset 0 0 15px rgba(59, 130, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(14, 165, 233, 0.7), inset 0 0 25px rgba(14, 165, 233, 0.4);
+  }
+}
+
+@keyframes laser-scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(150%);
+  }
+}
+
+@keyframes text-blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes terminal-line {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes pulse-radar {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes pulse-radar-red {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes float-cyber {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes rgb-border {
+  0%, 100% {
+    border-color: rgba(59, 130, 246, 0.6);
+  }
+  33% {
+    border-color: rgba(168, 85, 247, 0.6);
+  }
+  66% {
+    border-color: rgba(239, 68, 68, 0.6);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #060913;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6;
+  box-shadow: 0 0 10px #3b82f6;
+}
+
+/* Utility classes mapping keyframes */
+.animate-cyber-glow {
+  animation: cyber-glow 3s infinite ease-in-out;
+}
+
+.animate-laser-scan {
+  animation: laser-scan 2.5s infinite linear;
+}
+
+.animate-text-blink {
+  animation: text-blink 1.2s infinite ease-in-out;
+}
+
+.animate-radar-green {
+  animation: pulse-radar 2s infinite;
+}
+
+.animate-radar-red {
+  animation: pulse-radar-red 2s infinite;
+}
+
+.animate-float-cyber {
+  animation: float-cyber 4s infinite ease-in-out;
+}
+
+.animate-rgb-border {
+  animation: rgb-border 6s infinite linear;
+}
+
+/* Custom scroll area with fading corners */
+.scroll-fade-y {
+  mask-image: linear-gradient(to bottom, transparent, white 10%, white 90%, transparent);
+}
+

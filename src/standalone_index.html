@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no text-slate-100">
+    <title>MKMODZ | STANDALONE PREMIUM CONSOLE</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Poppins and Orbitron -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #070b13;
+            color: #f1f5f9;
+            user-select: none;
+        }
+        .font-mono {
+            font-family: 'Orbitron', monospace;
+        }
+        /* Custom Keyframes and Utilities */
+        @keyframes cyber-glow {
+            0%, 100% {
+                box-shadow: 0 0 15px rgba(59, 130, 246, 0.4), inset 0 0 15px rgba(59, 130, 246, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(14, 165, 233, 0.7), inset 0 0 25px rgba(14, 165, 233, 0.4);
+            }
+        }
+        @keyframes laser-scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(150%); }
+        }
+        @keyframes float-cyber {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-cyber-glow {
+            animation: cyber-glow 3s infinite ease-in-out;
+        }
+        .animate-laser-scan {
+            animation: laser-scan 2.5s infinite linear;
+        }
+        .animate-float-cyber {
+            animation: float-cyber 4s infinite ease-in-out;
+        }
+        /* Hide scrollbars but keep functionality */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #060913;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+            box-shadow: 0 0 10px #3b82f6;
+        }
+    </style>
+</head>
+<body class="relative min-h-screen overflow-x-hidden antialiased">
+
+    <!-- Ambient Grid Backdrop -->
+    <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px] opacity-30 z-0 pointer-events-none"></div>
+    <div class="absolute top-1/4 left-[-100px] w-96 h-96 rounded-full bg-blue-900/10 blur-[120px] pointer-events-none z-0"></div>
+    <div class="absolute bottom-1/4 right-[-100px] w-96 h-96 rounded-full bg-red-900/10 blur-[120px] pointer-events-none z-0"></div>
+
+    <!-- AUDIO SFX FEEDBACK -->
+    <audio id="click-sfx" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+
+    <!-- TOAST NOTIFICATION HUD -->
+    <div id="toast-hud" class="fixed top-6 right-6 z-[99999] max-w-sm w-full bg-slate-900/90 border border-indigo-500/80 backdrop-blur-md px-4 py-3 rounded-xl shadow-lg flex gap-3 items-start transition-all duration-300 transform -translate-y-12 opacity-0 pointer-events-none">
+        <div id="toast-icon" class="mt-0.5 text-sky-400">
+            <i data-lucide="info" class="w-5 h-5"></i>
+        </div>
+        <div class="flex-1">
+            <p class="text-xs uppercase font-semibold text-slate-400 font-mono tracking-wider">TELEMETRY DIAGNOSTICS</p>
+            <p id="toast-message" class="text-sm font-medium text-slate-100">Initializing Core Interface...</p>
+        </div>
+        <button onclick="hideToast()" class="text-slate-500 hover:text-slate-300">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <!-- 1. INTRO SYSTEM BOOT LOADER -->
+    <div id="loader-screen" class="fixed inset-0 z-[99999] bg-[#05070c] flex flex-col justify-center items-center px-6">
+        <div class="absolute inset-0 bg-[#090d16] bg-[radial-gradient(#1e293b_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-15"></div>
+        <div class="absolute top-0 left-0 w-full h-[6px] bg-gradient-to-r from-blue-500/50 via-cyan-400 to-blue-500/50 shadow-[0_0_15px_#22d3ee] animate-laser-scan opacity-80"></div>
+
+        <div class="text-center z-10 max-w-lg w-full">
+            <h1 class="text-4xl md:text-5xl font-mono font-extrabold tracking-[6px] text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-cyan-400 to-indigo-500 mb-1 drop-shadow-[0_0_12px_rgba(59,130,246,0.3)]">
+                MKMODZ
+            </h1>
+            <p class="font-mono text-xs text-blue-400/80 tracking-[4px] uppercase mb-8">SECURE STANDALONE PRO CONSOLE</p>
+
+            <!-- Radial Progress Gauge -->
+            <div class="relative w-28 h-28 mx-auto mb-10 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full border-4 border-slate-900"></div>
+                <svg class="w-full h-full transform -rotate-90">
+                    <circle cx="56" cy="56" r="48" class="stroke-cyan-500 stroke-[5]" fill="none" stroke-dasharray="301" stroke-dashoffset="301" id="circle-progress"></circle>
+                </svg>
+                <div id="load-pct" class="absolute text-xl font-bold font-mono text-slate-200 tracking-wider">0%</div>
+            </div>
+
+            <!-- Terminal Live Logs -->
+            <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-4 mb-8 font-mono text-left text-[11px] h-32 overflow-y-auto shadow-2xl flex flex-col gap-1 text-cyan-500/80" id="terminal-logs">
+                <div class="flex gap-2"><span class="text-indigo-400 font-bold">[ 00 ]</span><span class="text-slate-400">Loading offline crypt-vectors...</span></div>
+            </div>
+            
+            <p class="text-[10px] text-slate-500 font-mono tracking-widest uppercase">LOAD PROTOCOL INITIATION MODULE...</p>
+        </div>
+    </div>
+
+    <!-- 2. SECURE GATEWAY / LOGIN -->
+    <div id="auth-screen" class="min-h-screen hidden flex items-center justify-center p-4 relative z-10">
+        <div class="w-full max-w-md bg-slate-950/60 border border-slate-800/80 hover:border-slate-700/60 transition-all rounded-3xl p-8 backdrop-blur-xl shadow-2xl relative animate-cyber-glow">
+            <div class="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-cyan-500 via-indigo-500 to-cyan-500 animate-laser-scan opacity-25"></div>
+
+            <div class="text-center mb-8">
+                <div class="inline-flex p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-[#22D3EE] mb-3 animate-float-cyber">
+                    <i data-lucide="shield" class="w-8 h-8"></i>
+                </div>
+                <h2 id="auth-title" class="text-3xl font-extrabold font-mono tracking-widest text-[#22D3EE] drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">SECURE GATEWAY</h2>
+                <p id="auth-subtitle" class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-mono">VERIFY ACCESS KEY CODES</p>
+            </div>
+
+            <form id="auth-form" onsubmit="handleAuth(event)" class="space-y-5">
+                <div id="group-name" class="hidden">
+                    <label class="block text-[11px] font-mono uppercase text-slate-400 tracking-wider mb-1.5 ml-1">OPERATOR SIGNATURE</label>
+                    <div class="relative">
+                        <i data-lucide="user" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                        <input id="auth-name" type="text" placeholder="MK-OPERATOR" class="w-full bg-slate-900/60 border border-slate-800 focus:border-cyan-500 text-slate-100 rounded-xl py-3.5 pl-11 pr-4 outline-none text-sm font-semibold transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-mono uppercase text-slate-400 tracking-wider mb-1.5 ml-1">ENCRYPTED EMAIL ADDRESS</label>
+                    <div class="relative">
+                        <i data-lucide="mail" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                        <input id="auth-email" type="email" placeholder="operator@mkmodz.com" required class="w-full bg-slate-900/60 border border-slate-800 focus:border-cyan-500 text-slate-100 rounded-xl py-3.5 pl-11 pr-4 outline-none text-sm font-semibold transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-mono uppercase text-slate-400 tracking-wider mb-1.5 ml-1">PASSCODE / KEY PAYLOAD</label>
+                    <div class="relative">
+                        <i data-lucide="lock" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                        <input id="auth-password" type="password" placeholder="••••••••••••••" required class="w-full bg-slate-900/60 border border-slate-800 focus:border-cyan-500 text-slate-100 rounded-xl py-3.5 pl-11 pr-4 outline-none text-sm font-semibold transition font-mono">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full relative group overflow-hidden bg-gradient-to-r from-blue-700 via-cyan-500 to-indigo-650 hover:from-blue-600 hover:to-indigo-550 text-white font-bold tracking-widest text-xs uppercase py-4 rounded-xl shadow-lg hover:shadow-cyan-500/20 transition-all font-mono">
+                    <span class="relative z-10 flex items-center justify-center gap-2">
+                        <i data-lucide="lock-keyhole" class="w-4 h-4"></i>
+                        <span id="btn-msg">INITIASING ACCESS COMMAND</span>
+                    </span>
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p id="toggle-auth-msg" onclick="toggleAuthMode()" class="text-slate-400 hover:text-cyan-400 text-xs font-semibold cursor-pointer transition font-mono uppercase tracking-wider">
+                    LACKING SIGNATURE KEY? <span class="text-cyan-400 hover:underline">CREATE CREDENTIALS</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. MAIN DASHBOARD TERMINAL -->
+    <div id="dashboard-hud" class="hidden px-4 py-6 md:px-8 max-w-7xl mx-auto relative z-10">
+        
+        <!-- HEADER HUD BAR -->
+        <header class="flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-950/80 border border-slate-800/80 rounded-2xl p-4 mb-6 shadow-2xl backdrop-blur-md sticky top-4 z-[5000]">
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div onclick="openProfile()" class="relative group cursor-pointer">
+                    <div class="w-12 h-12 rounded-full overflow-hidden border border-slate-700 shadow-inner">
+                        <img id="hud-pfp" src="https://ui-avatars.com/api/?name=MK&background=0D8ABC&color=fff" alt="User Avatar" class="w-full h-full object-cover transition-transform group-hover:scale-110">
+                    </div>
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-slate-950 animate-pulse"></div>
+                </div>
+
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs font-mono font-bold text-slate-500 tracking-wider">OPERATOR_ID:</span>
+                        <span id="hud-username" class="text-sm font-mono font-black text-rose-500 tracking-wider">MK-OPERATOR</span>
+                    </div>
+                    <div class="flex items-center gap-1 text-[11px] font-mono text-[#22D3EE] font-extrabold">
+                        <span class="w-1.5 h-1.5 bg-sky-400 rounded-full"></span>
+                        <span id="hud-sec-code">MK-4091</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TELEMENTRY HUD STATS -->
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-lg px-3 py-1.5 text-[10px] font-mono flex items-center gap-2">
+                    <i data-lucide="clock" class="w-3.5 h-3.5 text-indigo-400"></i>
+                    <span id="hud-clock" class="text-indigo-300 font-bold tracking-widest">12:00:00</span>
+                    <span class="text-slate-500 font-bold">UTC</span>
+                </div>
+
+                <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-lg px-2.5 py-1.5 text-[10px] font-mono flex items-center gap-1.5">
+                    <i data-lucide="wifi" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span class="font-extrabold uppercase">STANDALONE_SECURE_ACTIVE</span>
+                </div>
+
+                <button onclick="toggleSideMenu()" class="w-10 h-10 flex items-center justify-center bg-slate-900 border border-slate-800 hover:border-cyan-550/80 hover:text-cyan-400 rounded-xl transition cursor-pointer">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- TRI-STAT BOARD -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-gradient-to-br from-slate-950 to-slate-900/80 border border-slate-800/80 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden">
+                <div class="flex-1">
+                    <span class="text-[10px] font-mono text-slate-400 block tracking-widest uppercase mb-1">RADAR SECTOR COUNTER</span>
+                    <div class="flex items-baseline gap-2">
+                        <h3 class="text-3xl font-black font-mono text-slate-100">731</h3>
+                        <span class="text-[9px] font-mono font-bold text-emerald-400 px-1.5 bg-emerald-950/50 rounded uppercase tracking-wider animate-pulse">Operators Online</span>
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center shrink-0 text-emerald-400">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-slate-950 to-slate-900/80 border border-slate-800/80 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden">
+                <div class="flex-1">
+                    <span class="text-[10px] font-mono text-slate-400 block tracking-widest uppercase mb-1">CYBERNETIC MOD INJECTORS</span>
+                    <div class="flex items-baseline gap-2">
+                        <h3 id="stat-active" class="text-3xl font-black font-mono text-slate-100">4</h3>
+                        <span class="text-[9px] font-mono font-bold text-cyan-400 px-1.5 bg-cyan-950/50 rounded uppercase tracking-wider">DEPLOYED ACTIVE</span>
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-cyan-400">
+                    <i data-lucide="cpu" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-slate-950 to-slate-900/80 border border-slate-800/80 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden">
+                <div class="flex-1">
+                    <span class="text-[10px] font-mono text-slate-400 block tracking-widest uppercase mb-1">SECURE CONSOLE INTEGRITY</span>
+                    <div class="flex items-baseline gap-2">
+                        <h3 class="text-lg font-black font-mono text-rose-455 text-rose-400">STABLE LEVEL 10</h3>
+                        <span class="text-[9px] font-mono font-bold text-rose-505 bg-rose-950/50 text-rose-400 px-1.5 rounded uppercase tracking-wider">ACTIVE BYPASS</span>
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-rose-405 text-rose-405">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEARCH FILTERS -->
+        <section class="bg-slate-950/40 border border-slate-800/60 rounded-2xl p-4 mb-6 backdrop-blur-sm shadow-xl">
+            <div class="flex flex-col md:flex-row gap-3">
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400"></i>
+                    <input id="search-input" onkeyup="filterFeatures()" type="text" placeholder="Intercept and filter telemetry loaders..." class="w-full bg-slate-900/60 hover:bg-slate-900 border border-slate-800 focus:border-cyan-500 text-slate-200 placeholder:text-slate-500 rounded-xl py-3 pl-11 pr-4 text-sm font-semibold outline-none transition">
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="openAdmin()" class="px-4 py-3 bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-slate-705 text-[11px] font-mono tracking-widest uppercase font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-2 rounded-xl transition cursor-pointer shrink-0">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-indigo-405"></i>
+                        COMMAND PANEL
+                    </button>
+                </div>
+            </div>
+
+            <!-- CHIPS CATEGORIES -->
+            <div class="flex items-center gap-2 mt-4 overflow-x-auto pb-1" id="category-chips">
+                <button onclick="selectCategory('ALL')" class="cat-chip px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold tracking-wider uppercase transition cursor-pointer" data-category="ALL">
+                    ALL DEPLOYED INFRASTRUCTURE
+                </button>
+            </div>
+        </section>
+
+        <!-- TOOLS GRID -->
+        <div id="tools-grid-container" class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- Dynamically populated via Javascript -->
+        </div>
+    </div>
+
+
+    <!-- ==================== DIALOGS & OVERLAYS ==================== -->
+
+    <!-- BACKGROUND BACKDROP DIMMER -->
+    <div id="master-backdrop" onclick="closeAllDrawers()" class="fixed inset-0 bg-[#04060c]/85 backdrop-blur-sm z-[9000] hidden cursor-pointer"></div>
+
+    <!-- 4. SIDE DRAWER MENU -->
+    <div id="side-drawer" class="fixed top-0 bottom-0 max-w-sm w-5/6 bg-[#090e17]/95 border-l border-slate-800/80 shadow-2xl z-[10000] p-6 flex flex-col justify-between backdrop-blur-2xl transition-all duration-300 -right-full">
+        <div>
+            <div class="flex items-center justify-between pb-5 border-b border-slate-800/60 mb-6">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="terminal" class="w-5 h-5 text-indigo-400"></i>
+                    <h2 class="font-extrabold font-mono tracking-widest text-[#22D3EE] uppercase text-sm">OPTIONS CONSOLE</h2>
+                </div>
+                <button onclick="toggleSideMenu()" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center hover:text-rose-455 transition cursor-pointer">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <a href="https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m" target="_blank" onclick="playClick()" class="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/60 hover:border-green-500/30 rounded-xl transition group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-[#10b981]/15 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                            <i data-lucide="globe" class="w-4 h-4"></i>
+                        </div>
+                        <div class="text-left">
+                            <h4 class="text-xs font-black font-mono tracking-wider text-slate-200 group-hover:text-green-400">Follow WHATSAPP</h4>
+                            <p class="text-[9px] text-slate-500 uppercase font-mono">Official Channel</p>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition"></i>
+                </a>
+
+                <a href="https://wa.me/+923327011312" target="_blank" onclick="playClick()" class="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/60 hover:border-blue-500/30 rounded-xl transition group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-[#3b82f6]/15 text-blue-400 flex items-center justify-center border border-blue-500/20">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </div>
+                        <div class="text-left">
+                            <h4 class="text-xs font-black font-mono tracking-wider text-slate-200 group-hover:text-blue-400">Contact Admin</h4>
+                            <p class="text-[9px] text-slate-500 uppercase font-mono">Bypass Assistance</p>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition"></i>
+                </a>
+
+                <div onclick="openProfile()" class="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/60 hover:border-indigo-550/30 rounded-xl cursor-pointer transition group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-550/20 flex items-center justify-center">
+                            <i data-lucide="settings" class="w-4 h-4"></i>
+                        </div>
+                        <div class="text-left">
+                            <h4 class="text-xs font-black font-mono tracking-wider text-slate-200 group-hover:text-indigo-400">Customize Profile</h4>
+                            <p class="text-[9px] text-slate-500 uppercase font-mono">Manage Avatar</p>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition"></i>
+                </div>
+
+                <div onclick="openWelcomeBriefing()" class="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/60 hover:border-cyan-550/30 rounded-xl cursor-pointer transition group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-550/20 flex items-center justify-center">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        </div>
+                        <div class="text-left">
+                            <h4 class="text-xs font-black font-mono tracking-wider text-slate-200 group-hover:text-cyan-400">Welcome Briefing</h4>
+                            <p class="text-[9px] text-slate-500 uppercase font-mono">Core System Rules</p>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition"></i>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="handleLogout()" class="w-full flex items-center justify-center gap-2 p-4 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 hover:border-rose-500 text-rose-400 rounded-xl transition cursor-pointer font-mono font-bold tracking-widest text-xs uppercase">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            Deauthorize Session
+        </button>
+    </div>
+
+    <!-- 5. PROFILE CUSTOMIZER DRAWER -->
+    <div id="profile-drawer" class="fixed top-0 bottom-0 max-w-sm w-5/6 bg-[#090e17]/95 border-l border-slate-800/80 shadow-2xl z-[10000] p-6 flex flex-col justify-between backdrop-blur-2xl transition-all duration-300 -right-full">
+        <div>
+            <div class="flex items-center justify-between pb-5 border-b border-slate-800/60 mb-6">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="user" class="w-5 h-5 text-indigo-400"></i>
+                    <h2 class="font-extrabold font-mono tracking-widest text-[#22D3EE] uppercase text-sm">PROFILE MANAGER</h2>
+                </div>
+                <button onclick="closeProfile()" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center hover:text-rose-455 transition cursor-pointer">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="space-y-6 pt-2">
+                <div class="flex flex-col items-center">
+                    <div class="relative w-24 h-24 rounded-full border-2 border-indigo-500/50 p-1 mb-3 bg-slate-900 overflow-hidden">
+                        <img id="profile-preview-img" src="https://ui-avatars.com/api/?name=MK&background=0D8ABC&color=fff" class="w-full h-full object-cover rounded-full">
+                    </div>
+
+                    <button onclick="document.getElementById('file-pfp-input').click()" class="px-4 py-1.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-slate-703 hover:text-white rounded-lg text-[10px] font-mono tracking-widest text-slate-400 uppercase flex items-center gap-1.5 transition cursor-pointer">
+                        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                        UPLOAD AVATAR IMAGE
+                    </button>
+                    <input type="file" id="file-pfp-input" class="hidden" accept="image/*" onchange="previewPfp(event)">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-mono uppercase text-slate-500 tracking-wider mb-1.5 ml-1">COMMUNICATION HANDLE (NAME)</label>
+                    <input id="profile-name-input" type="text" class="w-full bg-slate-900 border border-slate-800 focus:border-cyan-500 text-slate-100 rounded-xl p-3.5 outline-none text-xs font-semibold transition font-mono">
+                </div>
+            </div>
+        </div>
+
+        <button onclick="saveProfile()" class="w-full py-4 bg-gradient-to-r from-blue-700 to-indigo-650 hover:from-blue-600 hover:to-indigo-550 text-white font-bold tracking-widest text-xs uppercase rounded-xl transition shadow-lg cursor-pointer font-mono">
+            COMMIT SYSTEM CHANGES
+        </button>
+    </div>
+
+    <!-- 6. ADMIN COMMAND DRAWER -->
+    <div id="admin-drawer" class="fixed top-0 bottom-0 max-w-sm w-5/6 bg-[#090e17]/98 border-l border-slate-800/80 shadow-2xl z-[10000] p-6 flex flex-col justify-between backdrop-blur-2xl transition-all duration-300 -right-full">
+        <div>
+            <div class="flex items-center justify-between pb-5 border-b border-slate-800/60 mb-6">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="cpu" class="w-5 h-5 text-indigo-400"></i>
+                    <h2 class="font-extrabold font-mono tracking-widest text-[#22D3EE] uppercase text-sm">TELEMETRY INJECTOR</h2>
+                </div>
+                <button onclick="closeAdmin()" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center hover:text-rose-455 transition cursor-pointer">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="h-[calc(100vh-220px)] overflow-y-auto pr-1 space-y-5">
+                <div class="bg-blue-950/15 border border-blue-900/40 rounded-xl p-3.5 text-[11px] text-blue-300 leading-relaxed font-mono">
+                    <span class="font-black text-blue-400 uppercase tracking-widest block mb-1">COMMAND PROTOCOL</span>
+                    Deploy customized premium bypass injectors locally immediately to the HUD.
+                </div>
+
+                <div class="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4">
+                    <span class="text-[10px] font-mono uppercase text-slate-500 tracking-wider block mb-2 font-bold">AUTOMATED RESET</span>
+                    <button onclick="restorePresets()" class="w-full py-3 bg-indigo-950/60 hover:bg-indigo-900/50 border border-indigo-800 text-indigo-400 hover:text-indigo-300 font-bold tracking-widest text-[10px] uppercase rounded-lg transition text-center cursor-pointer font-mono">
+                        INJECT FACTORY PRESETS
+                    </button>
+                </div>
+
+                <form id="admin-form" onsubmit="addCustomTool(event)" class="space-y-4">
+                    <span class="text-[10px] font-mono uppercase text-slate-400 tracking-wider block font-bold border-b border-slate-900 pb-1.5 ml-1">ADD INJECTOR SIGNATURE</span>
+                    
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase text-slate-500 tracking-wider mb-1 ml-1">MOD NAME</label>
+                        <input id="new-tool-name" type="text" placeholder="Aim Assist v5 Bypass" required class="w-full bg-slate-900 border border-slate-800 focus:border-cyan-500 text-slate-100 rounded-lg p-3 outline-none text-xs font-semibold transition font-mono">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase text-slate-500 tracking-wider mb-1 ml-1">DIRECT LINK URL</label>
+                        <input id="new-tool-link" type="url" placeholder="https://whatsapp.com/..." required class="w-full bg-slate-900 border border-slate-800 focus:border-cyan-500 text-slate-100 rounded-lg p-3 outline-none text-xs font-semibold transition font-mono">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase text-slate-500 tracking-wider mb-1 ml-1">IMAGE SOURCE URL (Optional)</label>
+                        <input id="new-tool-img" type="url" placeholder="Image web URL..." class="w-full bg-slate-900 border border-slate-800 focus:border-cyan-500 text-slate-100 rounded-lg p-3 outline-none text-xs font-semibold transition font-mono">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase text-slate-500 tracking-wider mb-1 ml-1">CLASSIFICATION</label>
+                        <select id="new-tool-cat" class="w-full bg-slate-900 border border-slate-800 focus:border-cyan-500 text-slate-100 rounded-lg p-3 outline-none text-xs font-bold tracking-wide transition font-mono cursor-pointer">
+                            <option value="Aim Mods">Aim Mods</option>
+                            <option value="Sensors">Sensors</option>
+                            <option value="Bypass">Bypass</option>
+                            <option value="Security">Security</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 bg-[#22D3EE] hover:bg-[#06B6D4] text-slate-950 font-black tracking-widest text-[10px] uppercase rounded-lg shadow-lg transition cursor-pointer font-mono font-bold">
+                        INJECT NEW PROFILE
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. MODERN PROFESSIONAL WELCOME BRIEFING DIALOG -->
+    <div id="welcome-dialog" class="fixed inset-0 z-[99999] hidden flex items-center justify-center p-4">
+        <!-- Backdrop with dynamic blur -->
+        <div onclick="closeWelcome()" class="absolute inset-0 bg-slate-950/85 backdrop-blur-xl transition-opacity duration-500"></div>
+
+        <!-- Modal Card Dialog -->
+        <div class="relative w-full max-w-lg bg-gradient-to-b from-[#0a0f1d] to-[#04060c] border-2 border-indigo-500/20 rounded-3xl p-6 md:p-8 shadow-[0_0_50px_rgba(59,130,246,0.15)] overflow-hidden transition-all duration-300 transform scale-100 animate-float-cyber">
+            <div class="absolute top-0 left-0 w-full h-[4px] bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 animate-laser-scan opacity-40"></div>
+
+            <button onclick="closeWelcome()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-900/80 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-rose-450 hover:border-slate-700 transition cursor-pointer" title="Close briefing">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Title Header -->
+            <div class="text-center mb-6">
+                <div class="inline-flex p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-[#22D3EE] mb-3 animate-pulse">
+                    <i data-lucide="shield" class="w-7 h-7"></i>
+                </div>
+                <h3 class="text-xl md:text-2xl font-extrabold font-mono tracking-widest text-[#22D3EE] drop-shadow-[0_0_8px_rgba(34,211,238,0.2)] uppercase">
+                    CONSOLE SECURITY APPROVED
+                </h3>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-mono mt-1">
+                    SYSTEM BRIEFING & USER DEPLOYMENT GUIDE
+                </p>
+            </div>
+
+            <!-- Profile Info Spec -->
+            <div class="bg-slate-900/60 border border-slate-800/60 rounded-2xl p-4 mb-5 font-mono text-[11px] grid grid-cols-2 gap-3.5">
+                <div class="space-y-1">
+                    <span class="text-slate-500 block text-[9px] uppercase tracking-wider">OPERATOR IDENTITY</span>
+                    <span id="welc-username" class="text-rose-400 font-bold block">MK-OPERATOR</span>
+                </div>
+                <div class="space-y-1">
+                    <span class="text-slate-500 block text-[9px] uppercase tracking-wider">CLEARANCE INTEGRITY</span>
+                    <span class="text-emerald-400 font-extrabold flex items-center gap-1">
+                        <i data-lucide="check" class="w-3 h-3 text-emerald-400 stroke-[3]"></i>
+                        PREMIUM VIP
+                    </span>
+                </div>
+                <div class="space-y-1">
+                    <span class="text-slate-500 block text-[9px] uppercase tracking-wider">SECTOR CODE</span>
+                    <span id="welc-id" class="text-sky-300 font-bold block">MK-4091</span>
+                </div>
+                <div class="space-y-1">
+                    <span class="text-slate-500 block text-[9px] uppercase tracking-wider">CONNECT TIME</span>
+                    <span id="welc-clock" class="text-indigo-400 font-bold block">12:00:00 UTC</span>
+                </div>
+            </div>
+
+            <!-- Guidelines and Rules -->
+            <div class="space-y-3 mb-6">
+                <span class="text-[10px] font-mono font-black uppercase text-slate-400 tracking-widest block ml-1">CONSOLE PROTOCOLS:</span>
+                
+                <div class="flex gap-3 items-start p-3 bg-slate-950/40 border border-slate-900 rounded-xl hover:border-slate-800 transition">
+                    <div class="w-6 h-6 rounded bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/20 text-xs font-mono font-black">01</div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-200 uppercase font-mono tracking-wide">INTEGRITY-SAFE BYPASS ACTIVE</h4>
+                        <p class="text-[11px] text-slate-500 leading-relaxed mt-0.5">All mod tools employ anti-diagnostic shielding layers to operate undetected inside active game components.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 items-start p-3 bg-slate-950/40 border border-slate-900 rounded-xl hover:border-slate-800 transition">
+                    <div class="w-6 h-6 rounded bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20 text-xs font-mono font-black">02</div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-200 uppercase font-mono tracking-wide">WHATSAPP CYBER UPDATES</h4>
+                        <p class="text-[11px] text-slate-500 leading-relaxed mt-0.5">Key signatures rebuild every 48 hours. Follow the channel directly to immediately download latest updates.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex flex-col gap-3">
+                <a href="https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m" target="_blank" onclick="playClick()" class="flex items-center justify-between p-3.5 bg-emerald-950/20 hover:bg-emerald-950/30 border border-emerald-900/40 hover:border-emerald-500/50 rounded-xl transition-all group text-decoration-none">
+                    <div class="flex items-center gap-2.5">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                        </span>
+                        <span class="text-[11px] font-mono font-black text-emerald-400 uppercase tracking-widest block">JOIN WHATSAPP CHANNEL FOR UPDATES</span>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-emerald-400 group-hover:translate-x-1 transition"></i>
+                </a>
+
+                <button onclick="closeWelcome()" class="w-full relative group overflow-hidden bg-gradient-to-r from-blue-700 via-cyan-500 to-indigo-650 hover:from-blue-600 hover:to-indigo-550 text-white font-bold tracking-widest text-xs uppercase py-4 rounded-xl shadow-lg transition duration-200 cursor-pointer font-mono">
+                    <span class="relative z-10 flex items-center justify-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4 text-white stroke-[2.5]"></i>
+                        AUTHORIZE & ENTER HUD
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================== LOGICS & OPERATIONS ENGINE ==================== -->
+    <script>
+        // Preset sample mod features mapping database fallback
+        const PRESET_FEATURES = [
+            {
+                id: "ps-1",
+                name: "Aim Assist v4 Mod",
+                img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=400&auto=format&fit=crop",
+                link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
+                category: "Aim Mods",
+                status: "ACTIVE",
+                description: "Enhanced aim guidance with smart target tracking vectors."
+            },
+            {
+                id: "ps-2",
+                name: "ESP Radar Overlay",
+                img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=400&auto=format&fit=crop",
+                link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
+                category: "Sensors",
+                status: "ACTIVE",
+                description: "Thermal vision HUD showing active objects and distance tags."
+            },
+            {
+                id: "ps-3",
+                name: "BGMI No Recoil Patch",
+                img: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=400&auto=format&fit=crop",
+                link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
+                category: "Bypass",
+                status: "UPDATING",
+                description: "Stabilizes bullet trajectories perfectly. Safe module."
+            },
+            {
+                id: "ps-4",
+                name: "Antiban Safe Shield Pro",
+                img: "https://images.unsplash.com/photo-1601597111158-2fceff270190?q=80&w=400&auto=format&fit=crop",
+                link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
+                category: "Security",
+                status: "ACTIVE",
+                description: "Bypasses diagnostic queries. Zero trace logging."
+            }
+        ];
+
+        // System state
+        let isLoggedIn = localStorage.getItem('stand_loggedIn') === 'true';
+        let isSignUpMode = false;
+        let selectedCategory = "ALL";
+        let features = JSON.parse(localStorage.getItem('stand_features')) || [...PRESET_FEATURES];
+        let userData = JSON.parse(localStorage.getItem('stand_user')) || {
+            name: "MK-MODZ",
+            userId: "MK-" + Math.floor(1000 + Math.random() * 9000),
+            pfp: "https://ui-avatars.com/api/?name=MK&background=0D8ABC&color=fff"
+        };
+        let customBase64 = "";
+
+        // Simulated loader logs mapping
+        const SYSTEM_BOOT_LOGS = [
+            "LOG: Initializing MKMODZ standalone offline engine...",
+            "SEC: Opening sandbox security environment variables...",
+            "NET: Probing local storage cache parameters...",
+            "SYS: Compiling beautiful high-contrast CSS utilities...",
+            "SYS: Loading Lucide icon vector packages...",
+            "SEC: Launching premium cyber-assist triggers...",
+            "AUTH: Awaiting operator credential handshake...",
+            "SYS: CONSOLE RUN CODES SUCCESSFUL. ENJOY SECURE WEB CONSOLE..."
+        ];
+
+        // Toast trigger
+        function showToast(msg, type = "info") {
+            const toast = document.getElementById("toast-hud");
+            const toastIcon = document.getElementById("toast-icon");
+            const toastMsg = document.getElementById("toast-message");
+
+            toastMsg.innerText = msg;
+            
+            if (type === "success") {
+                toast.style.borderColor = "rgba(16, 185, 129, 0.8)";
+                toastIcon.className = "mt-0.5 text-emerald-400";
+                toastIcon.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5"></i>`;
+            } else if (type === "error") {
+                toast.style.borderColor = "rgba(239, 68, 68, 0.8)";
+                toastIcon.className = "mt-0.5 text-rose-400";
+                toastIcon.innerHTML = `<i data-lucide="shield-alert" class="w-5 h-5"></i>`;
+            } else {
+                toast.style.borderColor = "rgba(99, 102, 241, 0.8)";
+                toastIcon.className = "mt-0.5 text-sky-400";
+                toastIcon.innerHTML = `<i data-lucide="info" class="w-5 h-5"></i>`;
+            }
+            
+            lucide.createIcons();
+            toast.classList.remove("-translate-y-12", "opacity-0", "pointer-events-none");
+            toast.classList.add("translate-y-0", "opacity-100");
+
+            setTimeout(() => {
+                hideToast();
+            }, 3500);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById("toast-hud");
+            toast.classList.add("-translate-y-12", "opacity-0", "pointer-events-none");
+            toast.classList.remove("translate-y-0", "opacity-100");
+        }
+
+        // Play click sounds
+        function playClick() {
+            const audio = document.getElementById("click-sfx");
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(() => {});
+            }
+        }
+
+        // Ticking Clock updates
+        setInterval(() => {
+            const now = new Date();
+            const pad = (v) => String(v).padStart(2, '0');
+            const hh = pad(now.getHours());
+            const mm = pad(now.getMinutes());
+            const ss = pad(now.getSeconds());
+            const clockString = `${hh}:${mm}:${ss}`;
+            
+            const elClock = document.getElementById("hud-clock");
+            if(elClock) elClock.innerText = clockString;
+            
+            const welClock = document.getElementById("welc-clock");
+            if(welClock) welClock.innerText = clockString + " UTC";
+        }, 1000);
+
+        // System Boot Sequence
+        let loadCount = 0;
+        let logIndex = 0;
+        const loaderTimer = setInterval(() => {
+            loadCount += Math.floor(Math.random() * 8) + 4;
+            if (loadCount > 100) loadCount = 100;
+            
+            // Progress elements
+            document.getElementById("load-pct").innerText = loadCount + "%";
+            document.getElementById("circle-progress").setAttribute("stroke-dashoffset", 301 - (301 * loadCount) / 100);
+
+            // Log outputs
+            if (logIndex < SYSTEM_BOOT_LOGS.length && loadCount > (logIndex * 12)) {
+                const logsBox = document.getElementById("terminal-logs");
+                const line = document.createElement("div");
+                line.className = "flex gap-2";
+                line.innerHTML = `<span class="text-indigo-400 font-bold">[ ${String(logIndex).padStart(2, '0')} ]</span><span class="text-cyan-500/80">${SYSTEM_BOOT_LOGS[logIndex]}</span>`;
+                logsBox.appendChild(line);
+                logsBox.scrollTop = logsBox.scrollHeight;
+                logIndex++;
+            }
+
+            if (loadCount >= 100) {
+                clearInterval(loaderTimer);
+                setTimeout(() => {
+                    document.getElementById("loader-screen").classList.add("hidden");
+                    initAuthCheck();
+                }, 600);
+            }
+        }, 120);
+
+        // Check startup state 
+        function initAuthCheck() {
+            if (isLoggedIn) {
+                document.getElementById("auth-screen").classList.add("hidden");
+                document.getElementById("dashboard-hud").classList.remove("hidden");
+                loadDashboardData();
+                
+                // Show Welcome briefing initially once per session
+                if (!sessionStorage.getItem('stand_seenBriefing')) {
+                    openWelcomeBriefing();
+                }
+            } else {
+                document.getElementById("auth-screen").classList.remove("hidden");
+                document.getElementById("dashboard-hud").classList.add("hidden");
+            }
+            lucide.createIcons();
+        }
+
+        // Toggle Auth layout signature mode
+        function toggleAuthMode() {
+            playClick();
+            isSignUpMode = !isSignUpMode;
+            
+            const title = document.getElementById("auth-title");
+            const subtitle = document.getElementById("auth-subtitle");
+            const btnMsg = document.getElementById("btn-msg");
+            const groupName = document.getElementById("group-name");
+            const msgLink = document.getElementById("toggle-auth-msg");
+
+            if (isSignUpMode) {
+                title.innerText = "KEY CREATOR";
+                subtitle.innerText = "REGISTER NEW SIGNATURE";
+                btnMsg.innerText = "GENERATE SECURITY CREDENTIALS";
+                groupName.classList.remove("hidden");
+                msgLink.innerHTML = `ALREADY GENERATED? <span class="text-cyan-400 hover:underline">AUTHORIZE ACCESS</span>`;
+            } else {
+                title.innerText = "SECURE GATEWAY";
+                subtitle.innerText = "VERIFY ACCESS KEY CODES";
+                btnMsg.innerText = "SYSTEM RECON_MODE INITIATION";
+                groupName.classList.add("hidden");
+                msgLink.innerHTML = `LACKING SIGNATURE KEY? <span class="text-cyan-400 hover:underline">CREATE CREDENTIALS</span>`;
+            }
+        }
+
+        // Authenticate form submit
+        function handleAuth(e) {
+            e.preventDefault();
+            playClick();
+
+            const email = document.getElementById("auth-email").value;
+            const pass = document.getElementById("auth-password").value;
+            const nameInput = document.getElementById("auth-name").value;
+
+            if (!email || !pass) {
+                showToast("Email and Key is required", "error");
+                return;
+            }
+
+            if (isSignUpMode) {
+                userData.name = nameInput.trim() || "MK-USER";
+                userData.userId = "MK-" + Math.floor(1000 + Math.random() * 9000);
+                localStorage.setItem('stand_user', JSON.stringify(userData));
+                showToast("Cryptographic signature key created!", "success");
+                isSignUpMode = false;
+                toggleAuthMode();
+            } else {
+                isLoggedIn = true;
+                localStorage.setItem('stand_loggedIn', 'true');
+                showToast("System permissions authorized! Entering HUD Dashboard...", "success");
+                
+                setTimeout(() => {
+                    initAuthCheck();
+                }, 800);
+            }
+        }
+
+        // Profile details update
+        function loadDashboardData() {
+            document.getElementById("hud-username").innerText = userData.name;
+            document.getElementById("hud-sec-code").innerText = userData.userId;
+            document.getElementById("hud-pfp").src = userData.pfp;
+            
+            // Welcome parameters
+            document.getElementById("welc-username").innerText = userData.name;
+            document.getElementById("welc-id").innerText = userData.userId;
+
+            renderActiveFeatures();
+            renderCategories();
+        }
+
+        // Render mod feature catalog cards
+        function renderActiveFeatures() {
+            const grid = document.getElementById("tools-grid-container");
+            grid.innerHTML = "";
+
+            const query = document.getElementById("search-input").value.toLowerCase();
+            
+            const listFiltered = features.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(query) || (item.description && item.description.toLowerCase().includes(query));
+                const matchesCat = selectedCategory === "ALL" || item.category === selectedCategory;
+                return matchesSearch && matchesCat;
+            });
+
+            document.getElementById("stat-active").innerText = listFiltered.length;
+
+            if (listFiltered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12 bg-slate-950/20 border border-slate-900 rounded-3xl p-8 backdrop-blur-sm">
+                        <i data-lucide="shield-alert" class="w-12 h-12 text-slate-600 mx-auto mb-4 animate-bounce"></i>
+                        <h4 class="text-base font-bold font-mono text-slate-400 uppercase">NO MODULE INJECTORS MATCHED</h4>
+                        <p class="text-xs text-slate-500 mt-2 font-mono uppercase tracking-wide max-w-sm mx-auto">No injectors corresponding to your credentials criteria were found.</p>
+                        <button onclick="restorePresets()" class="mt-4 px-4 py-2 bg-gradient-to-r from-blue-700 to-indigo-600 text-white font-mono text-xs uppercase rounded-xl transition shadow-lg">Incorporate Preset Modules</button>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            listFiltered.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "premium-card group relative bg-gradient-to-b from-[#0f1524] to-[#04060b] border border-slate-800 hover:border-blue-500/60 rounded-2xl p-3 flex flex-col justify-between overflow-hidden shadow-lg transition-all duration-300 transform hover:-translate-y-1";
+                
+                card.innerHTML = `
+                    <div class="absolute inset-x-0 top-0 h-0.5 bg-blue-500 shadow-md scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center z-10"></div>
+                    <div class="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-950 mb-3 border border-slate-900 pointer-events-none">
+                        <img src="${item.img}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=300&auto=format&fit=crop'">
+                        <span class="absolute top-2 left-2 text-[8px] font-mono font-extrabold px-1.5 py-0.5 rounded tracking-widest bg-emerald-500/90 text-slate-950">${item.status || 'ACTIVE'}</span>
+                        <span class="absolute bottom-2 right-2 text-[8px] font-mono font-extrabold uppercase bg-slate-950/80 text-sky-400 border border-slate-800/60 px-1 py-0.5 rounded tracking-widest">${item.category || 'Mods'}</span>
+                    </div>
+
+                    <div class="flex-1 flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-extrabold text-xs tracking-wide text-slate-100 uppercase group-hover:text-blue-400 transition-colors font-mono truncate">${item.name}</h4>
+                            <p class="text-[10px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">${item.description || 'Secure custom system injector signature load.'}</p>
+                        </div>
+                        <div class="mt-4 flex gap-2 pt-2 border-t border-slate-900/60">
+                            <a href="${item.link}" target="_blank" onclick="playClick()" class="flex-1 bg-slate-900 border border-slate-800 group-hover:bg-blue-600 hover:border-blue-400 hover:text-white text-slate-300 text-[10px] font-mono font-black uppercase text-center py-2 rounded-lg transition-all flex items-center justify-between px-3">
+                                <span>LAUNCH HUD</span>
+                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            </a>
+                            <button onclick="deleteFeature('${item.id}')" class="w-9 bg-slate-950 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-500/60 text-slate-500 hover:text-rose-400 rounded-lg flex items-center justify-center transition">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        // Render interactive dynamically generated category chips
+        function renderCategories() {
+            const container = document.getElementById("category-chips");
+            container.innerHTML = `
+                <button onclick="selectCategory('ALL')" class="cat-chip px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold tracking-wider uppercase transition cursor-pointer shrink-0 ${selectedCategory === "ALL" ? 'bg-blue-600 border border-blue-500 text-white' : 'bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white'}" data-category="ALL">
+                    ALL DEPLOYED INFRASTRUCTURE
+                </button>
+            `;
+
+            const categories = new Set();
+            features.forEach(f => { if(f.category) categories.add(f.category); });
+            
+            categories.forEach(cat => {
+                const btn = document.createElement("button");
+                btn.onclick = () => selectCategory(cat);
+                btn.className = `cat-chip px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold tracking-wider uppercase transition cursor-pointer shrink-0 ${selectedCategory === cat ? 'bg-blue-600 border border-blue-500 text-white' : 'bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white'}`;
+                btn.innerText = cat;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectCategory(cat) {
+            playClick();
+            selectedCategory = cat;
+            renderCategories();
+            renderActiveFeatures();
+        }
+
+        function filterFeatures() {
+            renderActiveFeatures();
+        }
+
+        // Add custom bypass module signatures
+        function addCustomTool(e) {
+            e.preventDefault();
+            playClick();
+
+            const name = document.getElementById("new-tool-name").value;
+            const link = document.getElementById("new-tool-link").value;
+            let img = document.getElementById("new-tool-img").value;
+            const cat = document.getElementById("new-tool-cat").value;
+
+            if(!img) img = "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=400&auto=format&fit=crop";
+
+            const payloadObj = {
+                id: "custom-" + Date.now(),
+                name: name,
+                img: img,
+                link: link,
+                category: cat,
+                status: "ACTIVE",
+                description: "User injected diagnostic bypass signature profile."
+            };
+
+            features.unshift(payloadObj);
+            localStorage.setItem('stand_features', JSON.stringify(features));
+            showToast("Bypass Injector loaded successfully!", "success");
+
+            // Reset Form fields
+            document.getElementById("new-tool-name").value = "";
+            document.getElementById("new-tool-link").value = "";
+            document.getElementById("new-tool-img").value = "";
+
+            closeAdmin();
+            loadDashboardData();
+        }
+
+        function deleteFeature(id) {
+            playClick();
+            features = features.filter(item => item.id !== id);
+            localStorage.setItem('stand_features', JSON.stringify(features));
+            showToast("Signature de-authorized cleanly.", "success");
+            loadDashboardData();
+        }
+
+        function restorePresets() {
+            playClick();
+            features = [...PRESET_FEATURES];
+            localStorage.setItem('stand_features', JSON.stringify(features));
+            showToast("Factory preset mod-packs re-injected.", "success");
+            loadDashboardData();
+            closeAdmin();
+        }
+
+        // Profiles triggers
+        function previewPfp(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const img = new Image();
+                img.src = evt.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement("canvas");
+                    const maxW = 300;
+                    let w = img.width;
+                    let h = img.height;
+                    
+                    if (w > maxW) {
+                        h *= maxW / w;
+                        w = maxW;
+                    }
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0, w, h);
+                    
+                    customBase64 = canvas.toDataURL("image/jpeg", 0.6);
+                    document.getElementById("profile-preview-img").src = customBase64;
+                    showToast("Avatar file compression compiled!", "success");
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function saveProfile() {
+            playClick();
+            const editName = document.getElementById("profile-name-input").value.trim();
+            
+            if (editName) userData.name = editName;
+            if (customBase64) userData.pfp = customBase64;
+
+            localStorage.setItem('stand_user', JSON.stringify(userData));
+            showToast("Profile credentials rewritten!", "success");
+            closeProfile();
+            loadDashboardData();
+        }
+
+        function handleLogout() {
+            playClick();
+            isLoggedIn = false;
+            localStorage.removeItem('stand_loggedIn');
+            showToast("Session security terminated cleanly.");
+            closeAllDrawers();
+            initAuthCheck();
+        }
+
+        // Drawers UI toggling
+        function toggleSideMenu() {
+            playClick();
+            const drawer = document.getElementById("side-drawer");
+            const backdrop = document.getElementById("master-backdrop");
+            
+            drawer.classList.toggle("utility-show");
+            if (drawer.classList.contains("right-0")) {
+                drawer.classList.add("-right-full");
+                drawer.classList.remove("right-0");
+                backdrop.classList.add("hidden");
+            } else {
+                drawer.classList.remove("-right-full");
+                drawer.classList.add("right-0");
+                backdrop.classList.remove("hidden");
+            }
+        }
+
+        function openProfile() {
+            playClick();
+            closeAllDrawers();
+            document.getElementById("profile-name-input").value = userData.name;
+            document.getElementById("profile-preview-img").src = userData.pfp;
+            
+            const drawer = document.getElementById("profile-drawer");
+            drawer.classList.remove("-right-full");
+            drawer.classList.add("right-0");
+            document.getElementById("master-backdrop").classList.remove("hidden");
+        }
+
+        function closeProfile() {
+            playClick();
+            document.getElementById("profile-drawer").classList.add("-right-full");
+            document.getElementById("profile-drawer").classList.remove("right-0");
+            document.getElementById("master-backdrop").classList.add("hidden");
+        }
+
+        function openAdmin() {
+            playClick();
+            closeAllDrawers();
+            document.getElementById("admin-drawer").classList.remove("-right-full");
+            document.getElementById("admin-drawer").classList.add("right-0");
+            document.getElementById("master-backdrop").classList.remove("hidden");
+        }
+
+        function closeAdmin() {
+            playClick();
+            document.getElementById("admin-drawer").classList.add("-right-full");
+            document.getElementById("admin-drawer").classList.remove("right-0");
+            document.getElementById("master-backdrop").classList.add("hidden");
+        }
+
+        function openWelcomeBriefing() {
+            playClick();
+            closeAllDrawers();
+            const dialog = document.getElementById("welcome-dialog");
+            dialog.classList.remove("hidden");
+            dialog.classList.add("display-flex");
+        }
+
+        function closeWelcome() {
+            playClick();
+            sessionStorage.setItem('stand_seenBriefing', 'true');
+            const dialog = document.getElementById("welcome-dialog");
+            dialog.classList.add("hidden");
+            dialog.classList.remove("display-flex");
+        }
+
+        function closeAllDrawers() {
+            document.getElementById("side-drawer").classList.add("-right-full");
+            document.getElementById("side-drawer").classList.remove("right-0");
+            
+            document.getElementById("profile-drawer").classList.add("-right-full");
+            document.getElementById("profile-drawer").classList.remove("right-0");
+            
+            document.getElementById("admin-drawer").classList.add("-right-full");
+            document.getElementById("admin-drawer").classList.remove("right-0");
+
+            document.getElementById("master-backdrop").classList.add("hidden");
+        }
+    </script>
+</body>
+</html>
