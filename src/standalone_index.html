@@ -267,12 +267,6 @@
                     <input id="search-input" onkeyup="filterFeatures()" type="text" placeholder="Intercept and filter telemetry loaders..." class="w-full bg-slate-900/60 hover:bg-slate-900 border border-slate-800 focus:border-cyan-500 text-slate-200 placeholder:text-slate-500 rounded-xl py-3 pl-11 pr-4 text-sm font-semibold outline-none transition">
                 </div>
 
-                <div class="flex gap-2">
-                    <button onclick="openAdmin()" class="px-4 py-3 bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-slate-705 text-[11px] font-mono tracking-widest uppercase font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-2 rounded-xl transition cursor-pointer shrink-0">
-                        <i data-lucide="sparkles" class="w-4 h-4 text-indigo-405"></i>
-                        COMMAND PANEL
-                    </button>
-                </div>
             </div>
 
             <!-- CHIPS CATEGORIES -->
@@ -343,6 +337,19 @@
                         <div class="text-left">
                             <h4 class="text-xs font-black font-mono tracking-wider text-slate-200 group-hover:text-indigo-400">Customize Profile</h4>
                             <p class="text-[9px] text-slate-500 uppercase font-mono">Manage Avatar</p>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition"></i>
+                </div>
+
+                <div onclick="openAdmin()" class="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/60 hover:border-indigo-550/30 rounded-xl cursor-pointer transition group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-550/20 flex items-center justify-center">
+                            <i data-lucide="cpu" class="w-4 h-4"></i>
+                        </div>
+                        <div class="text-left">
+                            <h4 class="text-xs font-black font-mono tracking-wider text-slate-200 group-hover:text-indigo-400">Command Panel</h4>
+                            <p class="text-[9px] text-slate-500 uppercase font-mono">Bypass Telemetry Injector</p>
                         </div>
                     </div>
                     <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition"></i>
@@ -427,10 +434,17 @@
                 </div>
 
                 <div class="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4">
-                    <span class="text-[10px] font-mono uppercase text-slate-500 tracking-wider block mb-2 font-bold">AUTOMATED RESET</span>
-                    <button onclick="restorePresets()" class="w-full py-3 bg-indigo-950/60 hover:bg-indigo-900/50 border border-indigo-800 text-indigo-400 hover:text-indigo-300 font-bold tracking-widest text-[10px] uppercase rounded-lg transition text-center cursor-pointer font-mono">
-                        INJECT FACTORY PRESETS
+                    <span class="text-[10px] font-mono uppercase text-slate-500 tracking-wider block mb-2 font-bold">AUTOMATED WIPER</span>
+                    <button onclick="restorePresets()" class="w-full py-3 bg-rose-950/40 hover:bg-rose-900/50 border border-rose-900 text-rose-450 hover:text-rose-400 font-bold tracking-widest text-[10px] uppercase rounded-lg transition text-center cursor-pointer font-mono">
+                        DE-AUTHORIZE ALL MODULES
                     </button>
+                </div>
+
+                <div class="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4">
+                    <span class="text-[10px] font-mono uppercase text-slate-400 tracking-wider block mb-2.5 font-bold border-b border-slate-800 pb-1.5 ml-1">MANAGE LOADED INJECTORS</span>
+                    <div id="admin-features-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <!-- Dynamic rows populated via Javascript -->
+                    </div>
                 </div>
 
                 <form id="admin-form" onsubmit="addCustomTool(event)" class="space-y-4">
@@ -565,51 +579,14 @@
 
     <!-- ==================== LOGICS & OPERATIONS ENGINE ==================== -->
     <script>
-        // Preset sample mod features mapping database fallback
-        const PRESET_FEATURES = [
-            {
-                id: "ps-1",
-                name: "Aim Assist v4 Mod",
-                img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=400&auto=format&fit=crop",
-                link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
-                category: "Aim Mods",
-                status: "ACTIVE",
-                description: "Enhanced aim guidance with smart target tracking vectors."
-            },
-            {
-                id: "ps-2",
-                name: "ESP Radar Overlay",
-                img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=400&auto=format&fit=crop",
-                link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
-                category: "Sensors",
-                status: "ACTIVE",
-                description: "Thermal vision HUD showing active objects and distance tags."
-            },
-            {
-                id: "ps-3",
-                name: "BGMI No Recoil Patch",
-                img: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=400&auto=format&fit=crop",
-                link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
-                category: "Bypass",
-                status: "UPDATING",
-                description: "Stabilizes bullet trajectories perfectly. Safe module."
-            },
-            {
-                id: "ps-4",
-                name: "Antiban Safe Shield Pro",
-                img: "https://images.unsplash.com/photo-1601597111158-2fceff270190?q=80&w=400&auto=format&fit=crop",
-                link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
-                category: "Security",
-                status: "ACTIVE",
-                description: "Bypasses diagnostic queries. Zero trace logging."
-            }
-        ];
+        // Preset sample mod features mapping database is empty by default
+        const PRESET_FEATURES = [];
 
         // System state
         let isLoggedIn = localStorage.getItem('stand_loggedIn') === 'true';
         let isSignUpMode = false;
         let selectedCategory = "ALL";
-        let features = JSON.parse(localStorage.getItem('stand_features')) || [...PRESET_FEATURES];
+        let features = JSON.parse(localStorage.getItem('stand_features')) || [];
         let userData = JSON.parse(localStorage.getItem('stand_user')) || {
             name: "MK-MODZ",
             userId: "MK-" + Math.floor(1000 + Math.random() * 9000),
@@ -857,14 +834,11 @@
                             <h4 class="font-extrabold text-xs tracking-wide text-slate-100 uppercase group-hover:text-blue-400 transition-colors font-mono truncate">${item.name}</h4>
                             <p class="text-[10px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">${item.description || 'Secure custom system injector signature load.'}</p>
                         </div>
-                        <div class="mt-4 flex gap-2 pt-2 border-t border-slate-900/60">
-                            <a href="${item.link}" target="_blank" onclick="playClick()" class="flex-1 bg-slate-900 border border-slate-800 group-hover:bg-blue-600 hover:border-blue-400 hover:text-white text-slate-300 text-[10px] font-mono font-black uppercase text-center py-2 rounded-lg transition-all flex items-center justify-between px-3">
-                                <span>LAUNCH HUD</span>
+                        <div class="mt-4 pt-2 border-t border-slate-900/60 font-mono">
+                            <a href="${item.link}" target="_blank" onclick="playClick()" class="w-full bg-slate-900 border border-slate-800 hover:bg-blue-650 hover:border-blue-400 hover:text-white text-slate-300 text-[10px] font-mono font-black uppercase text-center py-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 px-3">
+                                <span>LAUNCH MODULE</span>
                                 <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                             </a>
-                            <button onclick="deleteFeature('${item.id}')" class="w-9 bg-slate-950 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-500/60 text-slate-500 hover:text-rose-400 rounded-lg flex items-center justify-center transition">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                            </button>
                         </div>
                     </div>
                 `;
@@ -905,6 +879,42 @@
             renderActiveFeatures();
         }
 
+        function renderAdminFeaturesList() {
+            const listContainer = document.getElementById("admin-features-list");
+            if (!listContainer) return;
+            listContainer.innerHTML = "";
+            
+            if (features.length === 0) {
+                listContainer.innerHTML = `<p class="text-[10px] text-slate-500 font-mono uppercase text-center py-3">No active modules deployed.</p>`;
+                return;
+            }
+            
+            features.forEach(item => {
+                const row = document.createElement("div");
+                row.className = "flex items-center justify-between p-2 bg-slate-950/80 border border-slate-800 rounded-lg gap-2";
+                row.innerHTML = `
+                    <div class="flex-1 min-w-0 text-left">
+                        <p class="text-[11px] font-bold text-slate-200 truncate uppercase tracking-widest font-mono">${item.name}</p>
+                        <p class="text-[9px] text-slate-500 uppercase font-mono">${item.category || "Mods"}</p>
+                    </div>
+                    <button onclick="deleteFeatureFromAdmin('${item.id}')" class="w-7 h-7 bg-rose-950/30 hover:bg-rose-900/40 border border-rose-950 hover:border-rose-600 text-rose-450 hover:text-rose-400 rounded flex items-center justify-center transition shrink-0 cursor-pointer" title="Delete injector">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                `;
+                listContainer.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        function deleteFeatureFromAdmin(id) {
+            playClick();
+            features = features.filter(item => item.id !== id);
+            localStorage.setItem('stand_features', JSON.stringify(features));
+            showToast("Signature de-authorized cleanly.", "success");
+            loadDashboardData();
+            renderAdminFeaturesList();
+        }
+
         // Add custom bypass module signatures
         function addCustomTool(e) {
             e.preventDefault();
@@ -936,8 +946,8 @@
             document.getElementById("new-tool-link").value = "";
             document.getElementById("new-tool-img").value = "";
 
-            closeAdmin();
             loadDashboardData();
+            renderAdminFeaturesList();
         }
 
         function deleteFeature(id) {
@@ -950,11 +960,13 @@
 
         function restorePresets() {
             playClick();
-            features = [...PRESET_FEATURES];
-            localStorage.setItem('stand_features', JSON.stringify(features));
-            showToast("Factory preset mod-packs re-injected.", "success");
-            loadDashboardData();
-            closeAdmin();
+            if (confirm("ARE YOU SURE YOU WANT TO DE-AUTHORIZE AND PURGE ALL DEPLOYED MODULES?")) {
+                features = [...PRESET_FEATURES];
+                localStorage.setItem('stand_features', JSON.stringify(features));
+                showToast("Custom database wiped clean.", "success");
+                loadDashboardData();
+                renderAdminFeaturesList();
+            }
         }
 
         // Profiles triggers
@@ -1050,10 +1062,17 @@
 
         function openAdmin() {
             playClick();
-            closeAllDrawers();
-            document.getElementById("admin-drawer").classList.remove("-right-full");
-            document.getElementById("admin-drawer").classList.add("right-0");
-            document.getElementById("master-backdrop").classList.remove("hidden");
+            const pin = prompt("ENTER ADMIN SECURITY PASSCODE REQUIRED FOR TELEMETRY CONTROL:");
+            if (pin === "3434" || pin === "admin123" || pin === "923327011312") {
+                closeAllDrawers();
+                renderAdminFeaturesList();
+                document.getElementById("admin-drawer").classList.remove("-right-full");
+                document.getElementById("admin-drawer").classList.add("right-0");
+                document.getElementById("master-backdrop").classList.remove("hidden");
+                showToast("Admin authorization successful!", "success");
+            } else if (pin !== null) {
+                showToast("ACCESS DENIED: INVALID ADMIN PASSCODE SIGNATURE", "error");
+            }
         }
 
         function closeAdmin() {

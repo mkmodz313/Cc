@@ -74,49 +74,8 @@ interface ModFeature {
   description?: string;
 }
 
-// Pre-seeded high quality feature packs for initial demo or local offline fallback
-const DEFAULT_PRESET_FEATURES: ModFeature[] = [
-  {
-    id: "preset-1",
-    name: "Aim Assist v4 Mod",
-    img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=400&auto=format&fit=crop",
-    link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
-    category: "Aim Mods",
-    releaseDate: "2026-06",
-    status: "ACTIVE",
-    description: "Enhanced aim guidance with smart target tracking vectors."
-  },
-  {
-    id: "preset-2",
-    name: "ESP Radar Overlay",
-    img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=400&auto=format&fit=crop",
-    link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
-    category: "Sensors",
-    releaseDate: "2026-06",
-    status: "ACTIVE",
-    description: "Thermal vision HUD showing active objects and distance tags."
-  },
-  {
-    id: "preset-3",
-    name: "BGMI No Recoil Patch",
-    img: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=400&auto=format&fit=crop",
-    link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
-    category: "Bypass",
-    releaseDate: "2026-05",
-    status: "UPDATING",
-    description: "Stabilizes bullet trajectories perfectly. Safe module."
-  },
-  {
-    id: "preset-4",
-    name: "Antiban Safe Shield Pro",
-    img: "https://images.unsplash.com/photo-1601597111158-2fceff270190?q=80&w=400&auto=format&fit=crop",
-    link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
-    category: "Security",
-    releaseDate: "2026-06",
-    status: "ACTIVE",
-    description: "Bypasses diagnostic queries. Zero trace logging."
-  }
-];
+// Pre-seeded template is empty so only features added from the admin panel appear
+const DEFAULT_PRESET_FEATURES: ModFeature[] = [];
 
 export default function App() {
   // --- STATE ENGINES ---
@@ -990,17 +949,6 @@ export default function App() {
                   </button>
                 )}
               </div>
-
-              {/* Creator Mode Quick Seeder / Launcher Button inside App */}
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => { playClickSfx(); setAdminPanelOpen(true); }}
-                  className="px-4 py-3 bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 text-[11px] font-mono tracking-widest uppercase font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-2 rounded-xl transition cursor-pointer shrink-0"
-                >
-                  <Sparkles className="w-4 h-4 text-indigo-400" />
-                  COMMAND CONSOLE
-                </button>
-              </div>
             </div>
 
             {/* CATEGORY SELECTOR CHIPS */}
@@ -1133,21 +1081,11 @@ export default function App() {
                         target="_blank" 
                         rel="noreferrer"
                         onClick={playClickSfx}
-                        className="flex-1 bg-slate-900 group-hover:bg-blue-650 hover:border-blue-400 group-hover:text-white border border-slate-800 text-slate-300 text-[10px] font-mono font-black uppercase text-center py-2.5 rounded-lg transition-all flex items-center justify-between px-3"
+                        className="w-full bg-slate-900 hover:bg-blue-650 hover:border-blue-400 font-bold hover:text-white border border-slate-800 text-slate-300 text-[10px] font-mono font-black uppercase text-center py-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 px-3"
                       >
-                        <span>LAUNCH</span>
-                        <ExternalLink className="w-3 h-3 group-hover:scale-110" />
+                        <span>LAUNCH MODULE</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
                       </a>
-
-                      {/* Optional Deletion icon for creator debug convenience */}
-                      {adminPanelOpen && (
-                        <button 
-                          onClick={() => handleDeleteTool(t.id || t.name)}
-                          className="w-10 bg-slate-950/80 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-500/60 text-slate-500 hover:text-rose-400 rounded-lg flex items-center justify-center transition cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -1233,6 +1171,33 @@ export default function App() {
                 <div className="text-left">
                   <h4 className="text-xs font-black font-mono tracking-wider text-slate-200 group-hover:text-indigo-400 transition">Adjust Blueprint Profile</h4>
                   <p className="text-[9px] text-slate-500 uppercase font-mono">Manage Avatar</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition" />
+            </div>
+
+            {/* Command Console trigger inside list */}
+            <div 
+              onClick={() => { 
+                playClickSfx(); 
+                const pin = prompt("ENTER ADMIN SECURITY PASSCODE REQUIRED FOR TELEMETRY CONTROL:");
+                if (pin === "3434" || pin === "admin123" || pin === "923327011312") {
+                  setSideMenuOpen(false); 
+                  setAdminPanelOpen(true); 
+                  showNotification("Admin authorization successful!", "success");
+                } else if (pin !== null) {
+                  showNotification("ACCESS DENIED: INVALID ADMIN PASSCODE SIGNATURE", "error");
+                }
+              }}
+              className="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/60 hover:border-indigo-500/30 rounded-xl cursor-pointer transition group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded bg-indigo-555/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-indigo-400" />
+                </div>
+                <div className="text-left">
+                  <h4 className="text-xs font-black font-mono tracking-wider text-slate-200 group-hover:text-indigo-400 transition">Command Console</h4>
+                  <p className="text-[9px] text-slate-500 uppercase font-mono">Bypass Telemetry Injector</p>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition" />
@@ -1384,15 +1349,60 @@ export default function App() {
               Use this admin bypass interface to write customized telemetry injectors immediately to your database core.
             </div>
 
-            {/* Quick Seeder Button */}
+            {/* Database Wipe Button */}
             <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4">
-              <span className="text-[10px] font-mono uppercase text-slate-500 tracking-wider block mb-2 font-bold">AUTOMATED SEED ENGINE</span>
+              <span className="text-[10px] font-mono uppercase text-slate-500 tracking-wider block mb-2 font-bold">AUTOMATED WIPER</span>
               <button 
-                onClick={handleSeedTestData}
-                className="w-full py-3 bg-indigo-950/60 hover:bg-indigo-900/50 border border-indigo-800 text-indigo-400 hover:text-indigo-300 font-bold tracking-widest text-[10px] uppercase rounded-lg transition text-center cursor-pointer font-mono"
+                onClick={async () => {
+                  playClickSfx();
+                  if (confirm("ARE YOU SURE YOU WANT TO DE-AUTHORIZE AND PURGE ALL LOADED INJECTORS?")) {
+                    if (usingLocalSimulation) {
+                      setFeatures([]);
+                      localStorage.setItem('stand_features', JSON.stringify([]));
+                    } else {
+                      // Delete all from firestore
+                      for (const t of features) {
+                        try {
+                          if (t.id) {
+                            await deleteDoc(doc(db, 'features', t.id));
+                          }
+                        } catch (err) {}
+                      }
+                      setFeatures([]);
+                    }
+                    showNotification("Custom module databases completely wiped.", "success");
+                  }
+                }}
+                className="w-full py-3 bg-rose-950/40 hover:bg-rose-900/50 border border-rose-900/50 text-rose-450 hover:text-rose-400 font-bold tracking-widest text-[10px] uppercase rounded-lg transition text-center cursor-pointer font-mono"
               >
-                Incorporate Preset Features
+                DE-AUTHORIZE ALL MODULES
               </button>
+            </div>
+
+            {/* Active Modules Manager */}
+            <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4">
+              <span className="text-[10px] font-mono uppercase text-slate-400 tracking-wider block mb-2.5 font-bold border-b border-slate-800 pb-1.5 ml-1">MANAGE LOADED INJECTORS</span>
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                {features.length === 0 ? (
+                  <p className="text-[10px] text-slate-500 font-mono uppercase text-center py-3">No active modules deployed.</p>
+                ) : (
+                  features.map((item, idx) => (
+                    <div key={item.id || idx} className="flex items-center justify-between p-2 bg-slate-950/80 border border-slate-800 rounded-lg gap-2">
+                      <div className="flex-1 min-w-0 text-left">
+                        <p className="text-[11px] font-bold text-slate-200 truncate uppercase tracking-widest font-mono">{item.name}</p>
+                        <p className="text-[9px] text-slate-500 uppercase font-mono">{item.category || "Mods"}</p>
+                      </div>
+                      <button 
+                        onClick={() => handleDeleteTool(item.id || item.name)}
+                        className="w-7 h-7 bg-rose-950/30 hover:bg-rose-900/40 border border-rose-950 hover:border-rose-600 text-rose-400 hover:text-rose-350 rounded flex items-center justify-center transition shrink-0 cursor-pointer"
+                        title="Delete dynamic injector"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
             {/* Manual adding Form */}
