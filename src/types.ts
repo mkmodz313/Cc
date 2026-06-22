@@ -1,36 +1,32 @@
-export interface DrawResult {
-  issueNumber: string;
-  number: number;
-  size: "BIG" | "SMALL";
-  color: "RED" | "GREEN" | "VIOLET";
+export interface BioItem {
+  id: number;
+  text: string;
+  category: string;
+  likes: number;
 }
 
-export type PredictResultType = "SIZE" | "COLOR";
-
-export interface PredictionPayload {
-  period: string;
-  type: PredictResultType;
-  val: "BIG" | "SMALL" | "RED" | "GREEN" | "VIOLET";
-  confidence: number;
-  modelCode: string;
-  hint: string;
-}
-
-export interface ModelAccuracy {
-  code: string;
-  name: string;
-  wins: number;
-  total: number;
-  rate: number;
-}
-
-export interface HistoryItem {
+export interface PresetCategory {
   id: string;
-  period: string;
-  level: string;
-  prediction: string;
-  predictionType: PredictResultType;
-  result: string;
-  isWin: boolean;
-  timestamp: number;
+  name: string;
+  icon: string;
+  description: string;
+}
+
+export interface StylistFontPreset {
+  id: string;
+  name: string;
+  transform: (text: string) => string;
+}
+
+export interface FacebookProfileState {
+  name: string;
+  isVerified: boolean;
+  avatarUrl: string;
+  coverUrl: string;
+  bioText: string;
+  hobbies: string[];
+  followersCount: string;
+  workplace: string;
+  homeTown: string;
+  relationshipStatus: string;
 }

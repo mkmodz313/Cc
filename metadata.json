@@ -1,6 +1,6 @@
 {
-  "name": "MKMODZ Premium Terminal",
-  "description": "A highly designed, elite dark cyberpunk terminal and mod console featuring real-time Firebase syncing, sleek diagnostic displays, scanlines, and neon status gauges.",
+  "name": "Facebook Stylish Bio Studio Pro",
+  "description": "High-fidelity Facebook Stylish Bio & Name Decorator suite featuring 1000+ pre-designed offline bios, font-stylizer, sound-effects, live profile preview generator, and AI-powered custom bio generator.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -102,12 +102,12 @@
             <p class="font-mono text-xs text-blue-400/80 tracking-[4px] uppercase mb-8">SECURE STANDALONE PRO CONSOLE</p>
 
             <!-- Radial Progress Gauge -->
-            <div class="relative w-28 h-28 mx-auto mb-10 flex items-center justify-center">
+            <div class="relative w-14 h-14 mx-auto mb-10 flex items-center justify-center">
                 <div class="absolute inset-0 rounded-full border-4 border-slate-900"></div>
                 <svg class="w-full h-full transform -rotate-90">
-                    <circle cx="56" cy="56" r="48" class="stroke-cyan-500 stroke-[5]" fill="none" stroke-dasharray="301" stroke-dashoffset="301" id="circle-progress"></circle>
+                    <circle cx="28" cy="28" r="24" class="stroke-cyan-500 stroke-[4]" fill="none" stroke-dasharray="151" stroke-dashoffset="151" id="circle-progress"></circle>
                 </svg>
-                <div id="load-pct" class="absolute text-xl font-bold font-mono text-slate-200 tracking-wider">0%</div>
+                <div id="load-pct" class="absolute text-sm font-bold font-mono text-slate-200 tracking-wider">0%</div>
             </div>
 
             <!-- Terminal Live Logs -->
@@ -744,7 +744,7 @@
             
             // Progress elements
             document.getElementById("load-pct").innerText = loadCount + "%";
-            document.getElementById("circle-progress").setAttribute("stroke-dashoffset", 301 - (301 * loadCount) / 100);
+            document.getElementById("circle-progress").setAttribute("stroke-dashoffset", 151 - (151 * loadCount) / 100);
 
             // Log outputs
             if (logIndex < SYSTEM_BOOT_LOGS.length && loadCount > (logIndex * 12)) {
