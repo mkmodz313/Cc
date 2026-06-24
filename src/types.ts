@@ -29,4 +29,12 @@ export interface FacebookProfileState {
   workplace: string;
   homeTown: string;
   relationshipStatus: string;
+  // Gold-Metallic card customized fields
+  subject?: string;
+  diploma?: string;
+  profession?: string;
+  speciality?: string;
+  expertise?: string;
+  phone?: string;
+  email?: string;
 }

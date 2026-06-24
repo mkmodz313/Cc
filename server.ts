@@ -105,6 +105,120 @@ app.use("/sites", express.static(STORAGE_DIR, {
   }
 }));
 
+// API: Get/Save Custom features for Terminal
+const FEATURES_FILE = path.join(STORAGE_DIR, "features.json");
+const DEFAULT_FEATURES = [
+  {
+    id: "default-1",
+    name: "Aim Assist VIP Injector",
+    img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=400&auto=format&fit=crop",
+    link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
+    category: "Aim Mods",
+    status: "ACTIVE",
+    description: "Direct server-side aim vector bypass with active noise reduction."
+  },
+  {
+    id: "default-2",
+    name: "ESP Wallhack Sensor",
+    img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=400&auto=format&fit=crop",
+    link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
+    category: "Sensors",
+    status: "ACTIVE",
+    description: "Real-time radar overlay with distance tracking and health indicators."
+  },
+  {
+    id: "default-3",
+    name: "High Damage Bullet Bypass",
+    img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=400&auto=format&fit=crop",
+    link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
+    category: "Bypass",
+    status: "ACTIVE",
+    description: "Bypasses gun spread, recoil control, and damage limits securely."
+  },
+  {
+    id: "default-4",
+    name: "Anti-Ban Shield v9",
+    img: "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?q=80&w=400&auto=format&fit=crop",
+    link: "https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m",
+    category: "Security",
+    status: "ACTIVE",
+    description: "Activates advanced telemetry diagnostic blocking and anti-report layers."
+  }
+];
+
+function readFeatures() {
+  try {
+    if (fs.existsSync(FEATURES_FILE)) {
+      return JSON.parse(fs.readFileSync(FEATURES_FILE, "utf-8"));
+    }
+  } catch (e) {
+    console.error("Error reading features.json", e);
+  }
+  return DEFAULT_FEATURES;
+}
+
+function writeFeatures(features: any[]) {
+  try {
+    if (!fs.existsSync(STORAGE_DIR)) {
+      fs.mkdirSync(STORAGE_DIR, { recursive: true });
+    }
+    fs.writeFileSync(FEATURES_FILE, JSON.stringify(features, null, 2), "utf-8");
+    return true;
+  } catch (e) {
+    console.error("Error writing features.json", e);
+    return false;
+  }
+}
+
+app.get("/api/terminal/features", (req, res) => {
+  res.json({ success: true, features: readFeatures() });
+});
+
+app.post("/api/terminal/features", (req, res) => {
+  try {
+    const { name, img, link, category, status, description } = req.body;
+    if (!name || !link) {
+      return res.status(400).json({ success: false, error: "Name and Link are required" });
+    }
+    const currentList = readFeatures();
+    const newFeature = {
+      id: "custom-" + Date.now(),
+      name,
+      img: img || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=400&auto=format&fit=crop",
+      link,
+      category: category || "Bypass",
+      status: status || "ACTIVE",
+      description: description || "User injected diagnostic bypass signature profile."
+    };
+    currentList.unshift(newFeature);
+    writeFeatures(currentList);
+    res.json({ success: true, features: currentList });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/api/terminal/features/:id", (req, res) => {
+  try {
+    const { id } = req.params;
+    let currentList = readFeatures();
+    currentList = currentList.filter((f: any) => f.id !== id);
+    writeFeatures(currentList);
+    res.json({ success: true, features: currentList });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/api/terminal/features/reset", (req, res) => {
+  try {
+    writeFeatures(DEFAULT_FEATURES);
+    res.json({ success: true, features: DEFAULT_FEATURES });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // API: Get System Status metrics
 app.get("/api/terminal/status", (req, res) => {
   try {
