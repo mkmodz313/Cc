@@ -929,8 +929,11 @@ export default function App() {
           <motion.div 
             exit={{ opacity: 0, scale: 1.1, filter: "blur(20px)" }}
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[99999] bg-[#02050a] flex flex-col justify-center items-center overflow-hidden select-none [perspective:1500px]"
+            className="fixed inset-0 z-[99999] bg-[#02050a] flex flex-col justify-start sm:justify-center items-center overflow-y-auto py-8 px-4 select-none [perspective:1500px]"
           >
+            {/* Cyber Rain Matrix Canvas */}
+            <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-[0.25] z-0" />
+
             {/* Ambient cyber nebula space dust flares */}
             <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-cyan-500/[0.08] blur-[140px] animate-pulse pointer-events-none" style={{ animationDuration: "10s" }}></div>
             <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-purple-500/[0.05] blur-[160px] animate-pulse pointer-events-none" style={{ animationDuration: "14s" }}></div>
@@ -953,10 +956,10 @@ export default function App() {
               animate={{ rotateX: 2, rotateY: -1, scale: 1 }}
               transition={{ duration: 1.5, ease: "easeOut" }}
               style={{ transformStyle: "preserve-3d" }}
-              className="relative z-20 flex flex-col items-center max-w-xl px-6 md:px-10 w-full text-center transform-gpu"
+              className="relative z-20 flex flex-col items-center max-w-xl px-4 sm:px-10 w-full text-center transform-gpu my-auto"
             >
               {/* Outer Circular Sci-Fi Radar Core */}
-              <div style={{ transform: "translateZ(45px)" }} className="relative w-52 h-52 mb-6 flex items-center justify-center">
+              <div style={{ transform: "translateZ(45px)" }} className="relative w-36 h-36 sm:w-52 sm:h-52 mb-4 sm:mb-6 flex items-center justify-center shrink-0">
                 {/* 1. Outer cyan spinning bracket ring */}
                 <div className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-500/30 animate-spin" style={{ animationDuration: "35s" }}></div>
                 
@@ -985,7 +988,7 @@ export default function App() {
                 </div>
 
                 {/* Main dynamic SVG circular speedometer loader */}
-                <svg className="absolute inset-0 w-full h-full transform -rotate-90">
+                <svg viewBox="0 0 208 208" className="absolute inset-0 w-full h-full transform -rotate-90">
                   <circle cx="104" cy="104" r="76" stroke="rgba(6, 182, 212, 0.04)" strokeWidth="4.5" fill="transparent" />
                   <circle 
                     cx="104" 
@@ -1015,7 +1018,7 @@ export default function App() {
 
                 {/* Center digital readout block */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="font-cyber text-3xl font-black text-[#00f2fe] tracking-wider drop-shadow-[0_0_15px_rgba(0,242,254,0.7)]">
+                  <span className="font-cyber text-2xl sm:text-3xl font-black text-[#00f2fe] tracking-wider drop-shadow-[0_0_15px_rgba(0,242,254,0.7)]">
                     {splashProgress}%
                   </span>
                   <span className="text-[7px] font-mono text-slate-500 font-extrabold uppercase tracking-[0.25em] mt-1.5">
@@ -1025,8 +1028,8 @@ export default function App() {
               </div>
 
               {/* Mini High-Tech Owner Avatar Container */}
-              <div style={{ transform: "translateZ(35px)" }} className="mb-5 flex flex-col items-center">
-                <div className="w-16 h-16 rounded-xl p-[1.5px] bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-500 shadow-[0_0_20px_rgba(6,182,212,0.4)] relative overflow-visible">
+              <div style={{ transform: "translateZ(35px)" }} className="mb-3.5 sm:mb-5 flex flex-col items-center shrink-0">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl p-[1.5px] bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-500 shadow-[0_0_20px_rgba(6,182,212,0.4)] relative overflow-visible">
                   {/* Glowing bracket corner markings */}
                   <div className="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 border-t-2 border-l-2 border-cyan-400"></div>
                   <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 border-t-2 border-r-2 border-cyan-400"></div>
@@ -1041,7 +1044,7 @@ export default function App() {
                     />
                   </div>
                 </div>
-                <div className="flex items-center gap-1 mt-2 bg-cyan-950/40 px-2 py-0.5 border border-cyan-500/20 rounded">
+                <div className="flex items-center gap-1 mt-1.5 bg-cyan-950/40 px-2 py-0.5 border border-cyan-500/20 rounded">
                   <span className="w-1 h-1 bg-cyan-400 rounded-full animate-ping"></span>
                   <span className="text-[7.5px] font-mono text-cyan-300 font-extrabold tracking-[0.15em] uppercase">
                     SYS_OWNER: UMAR MALANG
@@ -1050,25 +1053,25 @@ export default function App() {
               </div>
 
               {/* Title & Brand Header Section */}
-              <div style={{ transform: "translateZ(30px)" }} className="space-y-3.5">
+              <div style={{ transform: "translateZ(30px)" }} className="space-y-2 sm:space-y-3.5 shrink-0">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-cyan-500/5 border border-cyan-500/25 rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.4)]">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
                   </span>
-                  <span className="text-[8px] font-mono text-cyan-300 font-extrabold uppercase tracking-[0.15em]">SECURE HIGH-END COMPILER MODULE</span>
+                  <span className="text-[7.5px] sm:text-[8px] font-mono text-cyan-300 font-extrabold uppercase tracking-[0.15em]">SECURE HIGH-END COMPILER MODULE</span>
                 </div>
                 
-                <h1 className="font-cyber text-4xl font-black tracking-[0.25em] text-white uppercase drop-shadow-[0_0_25px_rgba(0,242,254,0.5)]">
+                <h1 className="font-cyber text-2xl sm:text-4xl font-black tracking-[0.15em] sm:tracking-[0.25em] text-white uppercase drop-shadow-[0_0_25px_rgba(0,242,254,0.5)]">
                   MKMODZ <span className="text-cyan-400">ELITE</span>
                 </h1>
-                <p className="font-mono text-[9px] text-indigo-400/80 tracking-[0.3em] font-extrabold uppercase">
+                <p className="font-mono text-[7.5px] sm:text-[9px] text-indigo-400/80 tracking-[0.2em] sm:tracking-[0.3em] font-extrabold uppercase">
                   ESTABLISHING CRYPTOGRAPHIC BYPASS DECODER
                 </p>
               </div>
 
               {/* JAW-DROPPING SEGMENTED HOLOGRAPHIC EQUALIZER LOADING BAR */}
-              <div style={{ transform: "translateZ(20px)" }} className="w-full max-w-sm mt-8">
+              <div style={{ transform: "translateZ(20px)" }} className="w-full max-w-xs sm:max-w-sm mt-5 sm:mt-8 shrink-0">
                 <div className="flex gap-1 justify-between p-1.5 bg-slate-950/85 border border-slate-900 rounded-2xl shadow-[inset_0_2px_8px_rgba(0,0,0,0.8)]">
                   {Array.from({ length: 22 }).map((_, idx) => {
                     const threshold = (idx + 1) * (100 / 22);
@@ -1076,7 +1079,7 @@ export default function App() {
                     return (
                       <div 
                         key={idx}
-                        className={`h-7 flex-1 rounded-[3px] transition-all duration-300 relative overflow-hidden ${
+                        className={`h-5 sm:h-7 flex-1 rounded-[3px] transition-all duration-300 relative overflow-hidden ${
                           isActive 
                             ? "bg-gradient-to-t from-[#00f2fe] via-[#00f2fe]/80 to-[#9b5de5] shadow-[0_0_12px_rgba(0,242,254,0.6)]" 
                             : "bg-slate-950/90 border border-slate-900/40"
@@ -1089,32 +1092,32 @@ export default function App() {
                     );
                   })}
                 </div>
-                <div className="flex justify-between items-center px-1.5 mt-2.5 text-[7.5px] font-mono text-slate-500 font-black tracking-widest uppercase">
+                <div className="flex justify-between items-center px-1.5 mt-2 text-[7px] sm:text-[7.5px] font-mono text-slate-500 font-black tracking-widest uppercase">
                   <span>BYTE SCANNER STREAM: READY</span>
                   <span className="text-[#00f2fe] animate-pulse">MEM_MAP_INITIALISED_SUCCESS</span>
                 </div>
               </div>
 
               {/* Professional Real-Time Scrolling Compilation Console Logs */}
-              <div style={{ transform: "translateZ(10px)" }} className="w-full mt-6 bg-[#03060a]/95 border border-slate-900/90 rounded-[24px] p-4 text-left font-mono text-[9px] text-cyan-400 min-h-36 max-h-40 overflow-y-auto space-y-2 shadow-[-10px_15px_40px_rgba(0,0,0,0.9)] relative scrollbar-none">
-                <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#03060a] to-transparent pointer-events-none z-10"></div>
+              <div style={{ transform: "translateZ(10px)" }} className="w-full mt-4 sm:mt-6 bg-[#03060a]/95 border border-slate-900/90 rounded-[20px] sm:rounded-[24px] p-3 sm:p-4 text-left font-mono text-[8px] sm:text-[9px] text-cyan-400 min-h-24 max-h-28 sm:min-h-36 sm:max-h-40 overflow-y-auto space-y-1.5 sm:space-y-2 shadow-[-10px_15px_40px_rgba(0,0,0,0.9)] relative scrollbar-none shrink-0">
+                <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-[#03060a] to-transparent pointer-events-none z-10"></div>
                 
-                <div className="text-slate-500 uppercase tracking-widest font-black text-[7.5px] border-b border-slate-900/80 pb-2.5 mb-2.5 flex justify-between">
+                <div className="text-slate-500 uppercase tracking-widest font-black text-[7px] sm:text-[7.5px] border-b border-slate-900/80 pb-2 mb-2 flex justify-between">
                   <span>🔐 DECRYPTION SYSTEM BYPASS HANDSHAKE</span>
-                  <span className="animate-pulse text-cyan-400 font-bold">ACTIVE INJECTORS STATUS: OK</span>
+                  <span className="animate-pulse text-cyan-400 font-bold">ACTIVE STATUS: OK</span>
                 </div>
                 
                 {splashLogs.map((log, index) => (
-                  <div key={index} className="flex gap-3 leading-relaxed items-start">
-                    <span className="text-indigo-400 font-black shrink-0 font-mono text-[8px] select-none">❯_0{index + 1}</span>
-                    <span className="text-slate-300 font-mono tracking-wide leading-relaxed uppercase">{log}</span>
+                  <div key={index} className="flex gap-2 leading-relaxed items-start">
+                    <span className="text-indigo-400 font-black shrink-0 font-mono text-[7.5px] sm:text-[8px] select-none">❯_0{index + 1}</span>
+                    <span className="text-slate-300 font-mono tracking-wide leading-relaxed uppercase text-[7.5px] sm:text-[8.5px]">{log}</span>
                   </div>
                 ))}
               </div>
 
               {/* Operator Secure Face ID Handshake check panel */}
-              <div style={{ transform: "translateZ(15px)" }} className="w-full mt-5 bg-[#03060a]/90 border border-cyan-500/30 rounded-[20px] p-3 flex items-center gap-4 text-left shadow-[0_8px_30px_rgba(0,0,0,0.8)]">
-                <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-cyan-500/40 bg-slate-950 shrink-0">
+              <div style={{ transform: "translateZ(15px)" }} className="w-full mt-4 sm:mt-5 bg-[#03060a]/90 border border-cyan-500/30 rounded-[16px] sm:rounded-[20px] p-2.5 sm:p-3 flex items-center gap-3 sm:gap-4 text-left shadow-[0_8px_30px_rgba(0,0,0,0.8)] shrink-0">
+                <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-xl overflow-hidden border border-cyan-500/40 bg-slate-950 shrink-0">
                   <img 
                     src={stylishBoyImg} 
                     className="w-full h-full object-cover" 
@@ -1133,10 +1136,10 @@ export default function App() {
                   <div className="absolute inset-0 border border-cyan-500/10 pointer-events-none" />
                 </div>
                 <div className="flex-1 min-w-0 font-mono">
-                  <div className="text-[7px] text-slate-500 uppercase tracking-widest font-black leading-none">
+                  <div className="text-[6.5px] sm:text-[7px] text-slate-500 uppercase tracking-widest font-black leading-none">
                     AUTHORIZED HANDSHAKE OBJECT
                   </div>
-                  <h4 className="text-[11px] text-slate-200 font-extrabold tracking-wider uppercase mt-1 truncate">
+                  <h4 className="text-[10px] sm:text-[11px] text-slate-200 font-extrabold tracking-wider uppercase mt-1 truncate">
                     SP BOYXBVSBDB 👑
                   </h4>
                   <div className="flex items-center gap-1.5 mt-1">
@@ -1144,7 +1147,7 @@ export default function App() {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
                     </span>
-                    <span className="text-[7.5px] text-emerald-400 font-black tracking-widest uppercase">
+                    <span className="text-[7px] sm:text-[7.5px] text-emerald-400 font-black tracking-widest uppercase">
                       CLEARANCE_MAX_LEVEL
                     </span>
                   </div>
@@ -2220,39 +2223,39 @@ export default function App() {
               whileHover={{ rotateX: 1, rotateY: 3, scale: 1.01 }}
               transition={{ type: "spring", damping: 22, stiffness: 140 }}
               style={{ transformStyle: "preserve-3d" }}
-              className="relative w-full max-w-lg bg-gradient-to-b from-[#0d172e] to-[#03060c] border-2 border-cyan-500/50 rounded-[36px] p-6 md:p-8 shadow-[-25px_35px_80px_rgba(0,0,0,0.95),0_0_90px_rgba(6,182,212,0.3),inset_0_1px_3px_rgba(255,255,255,0.15)] backdrop-blur-md overflow-hidden text-left transform-gpu cursor-default"
+              className="relative w-full max-w-md bg-gradient-to-b from-[#0d172e] to-[#03060c] border-2 border-cyan-500/50 rounded-[24px] p-5 md:p-6 shadow-[-25px_35px_80px_rgba(0,0,0,0.95),0_0_90px_rgba(6,182,212,0.3),inset_0_1px_3px_rgba(255,255,255,0.15)] backdrop-blur-md overflow-hidden text-left transform-gpu cursor-default"
             >
               {/* Dynamic blueprint line coordinate grid overlay */}
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.025)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none rounded-[36px]" />
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.025)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none rounded-[24px]" />
               
               {/* Corner tech decals */}
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyan-400 pointer-events-none rounded-tl-[36px] opacity-80" />
-              <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-cyan-400 pointer-events-none rounded-tr-[36px] opacity-80" />
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-cyan-400 pointer-events-none rounded-bl-[36px] opacity-80" />
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-cyan-400 pointer-events-none rounded-br-[36px] opacity-80" />
+              <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-cyan-400 pointer-events-none rounded-tl-[24px] opacity-80" />
+              <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-cyan-400 pointer-events-none rounded-tr-[24px] opacity-80" />
+              <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-cyan-400 pointer-events-none rounded-bl-[24px] opacity-80" />
+              <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-cyan-400 pointer-events-none rounded-br-[24px] opacity-80" />
 
               {/* Cyan and magenta cyber orbs */}
-              <div className="absolute -top-16 -right-16 w-48 h-48 bg-gradient-to-br from-cyan-400/20 to-purple-600/15 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -top-16 -right-16 w-36 h-36 bg-gradient-to-br from-cyan-400/20 to-purple-600/15 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
               {/* 3D Floating Header */}
-              <div style={{ transform: "translateZ(55px)" }} className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-900/90 pb-5 mb-5 gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/25 to-emerald-700/5 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.35)]">
-                    <ShieldCheck className="w-7 h-7 animate-pulse" />
+              <div style={{ transform: "translateZ(55px)" }} className="flex flex-row justify-between items-center border-b border-slate-900/90 pb-3 mb-4 gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/25 to-emerald-700/5 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.35)]">
+                    <ShieldCheck className="w-6 h-6 animate-pulse" />
                   </div>
                   <div>
-                    <h2 className="font-cyber text-base font-black text-emerald-400 uppercase tracking-widest leading-none drop-shadow-[0_0_10px_rgba(16,185,129,0.4)]">
+                    <h2 className="font-cyber text-sm font-black text-emerald-400 uppercase tracking-widest leading-none drop-shadow-[0_0_10px_rgba(16,185,129,0.4)]">
                       BYPASS GRANTED
                     </h2>
-                    <p className="text-[9px] text-slate-500 font-mono uppercase tracking-widest mt-1.5 font-bold">
-                      OPERATOR STANDARDS DYNAMICALLY LOADED
+                    <p className="text-[8px] text-slate-500 font-mono uppercase tracking-widest mt-1 font-bold">
+                      OPERATOR STANDARDS ACTIVE
                     </p>
                   </div>
                 </div>
 
-                <div className="text-right font-mono self-end sm:self-center">
-                  <span id="welc-clock" className="text-[9.5px] text-[#ffd700] font-black bg-[#ffd700]/5 border border-[#ffd700]/30 px-3.5 py-2 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.6)] font-mono">
+                <div className="text-right font-mono">
+                  <span id="welc-clock" className="text-[8.5px] text-[#ffd700] font-black bg-[#ffd700]/5 border border-[#ffd700]/30 px-2.5 py-1.5 rounded-lg shadow-[0_4px_15px_rgba(0,0,0,0.6)] font-mono">
                     {terminalClock} UTC
                   </span>
                 </div>
@@ -2261,80 +2264,80 @@ export default function App() {
               {/* Operator details block with deep physical inset shadow */}
               <div 
                 style={{ transform: "translateZ(35px)" }} 
-                className="bg-[#02050a] border-2 border-slate-900/90 rounded-2xl p-5 mb-6 grid grid-cols-2 gap-4 text-xs font-mono shadow-[inset_0_2px_12px_rgba(0,0,0,0.9),0_4px_12px_rgba(0,0,0,0.5)]"
+                className="bg-[#02050a] border border-slate-900/90 rounded-xl p-3.5 mb-4 grid grid-cols-2 gap-3 text-[11px] font-mono shadow-[inset_0_2px_8px_rgba(0,0,0,0.9),0_4px_8px_rgba(0,0,0,0.5)]"
               >
                 <div>
-                  <span className="text-[8px] text-slate-500 uppercase tracking-widest block font-black">OPERATOR IDENTITY:</span>
-                  <span className="text-[11px] text-slate-200 font-black uppercase mt-1 block truncate">
+                  <span className="text-[7px] text-slate-500 uppercase tracking-widest block font-black">IDENTITY:</span>
+                  <span className="text-[10px] text-slate-200 font-black uppercase mt-0.5 block truncate">
                     {userData.name}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[8px] text-slate-500 uppercase tracking-widest block font-black">CLEARANCE INTEGRITY:</span>
-                  <span className="text-[11px] text-cyan-400 font-black uppercase mt-1 block">
+                  <span className="text-[7px] text-slate-500 uppercase tracking-widest block font-black">CLEARANCE:</span>
+                  <span className="text-[10px] text-cyan-400 font-black uppercase mt-0.5 block">
                     SEC-LEVEL-MAX
                   </span>
                 </div>
                 <div>
-                  <span className="text-[8px] text-slate-500 uppercase tracking-widest block font-black">SECTOR CODE:</span>
-                  <span className="text-[11px] text-indigo-400 font-black uppercase mt-1 block">
+                  <span className="text-[7px] text-slate-500 uppercase tracking-widest block font-black">SECTOR CODE:</span>
+                  <span className="text-[10px] text-indigo-400 font-black uppercase mt-0.5 block truncate">
                     {userData.userId}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[8px] text-slate-500 uppercase tracking-widest block font-black">CONNECT STATUS:</span>
-                  <span className="text-[11px] text-emerald-400 font-black uppercase mt-1 block">
+                  <span className="text-[7px] text-slate-500 uppercase tracking-widest block font-black">STATUS:</span>
+                  <span className="text-[10px] text-emerald-400 font-black uppercase mt-0.5 block">
                     ONLINE SECURED
                   </span>
                 </div>
               </div>
 
               {/* System Guidelines with 3D Float Depth */}
-              <div style={{ transform: "translateZ(25px)" }} className="space-y-4 mb-8">
-                <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 flex items-center justify-center text-[9px] font-mono font-black shrink-0 mt-0.5 shadow-md">
+              <div style={{ transform: "translateZ(25px)" }} className="space-y-3 mb-5">
+                <div className="flex gap-2.5">
+                  <div className="w-5 h-5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 flex items-center justify-center text-[8px] font-mono font-black shrink-0 mt-0.5 shadow-md">
                     01
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-slate-200 uppercase font-mono tracking-wide">ZERO LATENCY DECRYPT ENGINE</h4>
-                    <p className="text-[10px] text-slate-500 leading-relaxed mt-1">
-                      All bypass injector systems operate under high-speed persistent caching. Updates synchronize instantly in the background.
+                    <h4 className="text-[11px] font-bold text-slate-200 uppercase font-mono tracking-wide">ZERO LATENCY DECRYPT ENGINE</h4>
+                    <p className="text-[9.5px] text-slate-500 leading-relaxed mt-0.5">
+                      Systems operate under high-speed persistent caching. Updates synchronize instantly in the background.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 flex items-center justify-center text-[9px] font-mono font-black shrink-0 mt-0.5 shadow-md">
+                <div className="flex gap-2.5">
+                  <div className="w-5 h-5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 flex items-center justify-center text-[8px] font-mono font-black shrink-0 mt-0.5 shadow-md">
                     02
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-slate-200 uppercase font-mono tracking-wide">WHATSAPP CYBER UPDATES</h4>
-                    <p className="text-[10px] text-slate-500 leading-relaxed mt-1">
-                      Key signatures are rebuilt dynamically. Subscribe directly to the channel to get instantly updated bypass builds.
+                    <h4 className="text-[11px] font-bold text-slate-200 uppercase font-mono tracking-wide">WHATSAPP CYBER UPDATES</h4>
+                    <p className="text-[9.5px] text-slate-500 leading-relaxed mt-0.5">
+                      Key signatures are rebuilt dynamically. Subscribe directly to get updated bypass builds.
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* Actions with layered floating button shadows */}
-              <div style={{ transform: "translateZ(45px)" }} className="flex flex-col gap-3">
+              <div style={{ transform: "translateZ(45px)" }} className="flex flex-col gap-2.5">
                 <a 
                   href="https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   onClick={() => SoundCore.playTick()}
-                  className="flex items-center justify-between p-3.5 bg-emerald-950/20 hover:bg-emerald-950/35 border-2 border-emerald-900/40 hover:border-emerald-500/60 rounded-xl transition group text-decoration-none shadow-[0_8px_20px_rgba(0,0,0,0.6)]"
+                  className="flex items-center justify-between p-2.5 bg-emerald-950/20 hover:bg-emerald-950/35 border border-emerald-900/40 hover:border-emerald-500/60 rounded-lg transition group text-decoration-none shadow-[0_4px_12px_rgba(0,0,0,0.6)]"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <span className="relative flex h-2 w-2 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-1.5 w-1.5 shrink-0">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 font-bold"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400 font-bold"></span>
                     </span>
-                    <span className="text-[10px] font-mono font-black text-emerald-400 uppercase tracking-widest block truncate">
+                    <span className="text-[9px] font-mono font-black text-emerald-400 uppercase tracking-wider block truncate">
                       JOIN WHATSAPP CHANNEL FOR UPDATES
                     </span>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-1 transition" />
+                  <ChevronRight className="w-3.5 h-3.5 text-emerald-400 group-hover:translate-x-1 transition" />
                 </a>
 
                 <button 
@@ -2343,10 +2346,10 @@ export default function App() {
                     sessionStorage.setItem("stand_seenBriefing", "true");
                     setShowWelcomeBriefing(false);
                   }}
-                  className="w-full relative group overflow-hidden bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-black tracking-widest text-xs uppercase py-4 rounded-xl shadow-[0_12px_30px_-5px_rgba(6,182,212,0.45),0_4px_12px_rgba(0,0,0,0.6)] transition duration-200 cursor-pointer font-mono active:translate-y-0.5"
+                  className="w-full relative group overflow-hidden bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-black tracking-widest text-[10px] uppercase py-3 rounded-lg shadow-[0_8px_20px_-5px_rgba(6,182,212,0.45),0_4px_10px_rgba(0,0,0,0.6)] transition duration-200 cursor-pointer font-mono active:translate-y-0.5"
                 >
-                  <span className="relative z-10 flex items-center justify-center gap-2">
-                    <Check className="w-4 h-4 text-slate-950 stroke-[3]" />
+                  <span className="relative z-10 flex items-center justify-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-slate-950 stroke-[3]" />
                     <span>AUTHORIZE & ENTER HUD</span>
                   </span>
                 </button>
