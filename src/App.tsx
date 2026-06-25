@@ -448,7 +448,7 @@ export default function App() {
     const interval = setInterval(() => {
       setShowPromoAd(true);
       SoundCore.playSuccessLaser();
-    }, 30000); // 30 seconds
+    }, 100000); // 1 minute
     
     return () => clearInterval(interval);
   }, [isLoggedIn, showSplash]);
