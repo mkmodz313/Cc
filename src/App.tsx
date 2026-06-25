@@ -33,7 +33,7 @@ import {
 import { SoundCore } from "./components/SoundCore";
 import { db } from "./firebase";
 import { collection, onSnapshot, doc, setDoc, deleteDoc } from "firebase/firestore";
-import stylishBoyImg from "./assets/images/stylish_boy_1782169107213.jpg";
+import stylishBoyImg from "./images/stylish_boy_1782169107213.jpg";
 
 // Define unified interface for our toolkit items
 interface ToolItem {
@@ -216,6 +216,7 @@ export default function App() {
   const [showSplash, setShowSplash] = useState<boolean>(true);
   const [splashProgress, setSplashProgress] = useState<number>(0);
   const [splashLogs, setSplashLogs] = useState<string[]>([]);
+  const [isSyncing, setIsSyncing] = useState<boolean>(true);
   
   // High-Tech Auth Scanning States
   const [isScanning, setIsScanning] = useState<boolean>(false);
@@ -374,15 +375,18 @@ export default function App() {
     SoundCore.startSpaceHum();
 
     let logIndex = 0;
-    const speed = 40; // Silky fast ticker (40ms steps) but increments are smaller for maximum smoothness
+    const speed = 75; // Slower high-fidelity ticker (75ms steps) for a majestic experience
     
     const progressInterval = setInterval(() => {
       setSplashProgress((prev) => {
-        // Buttery-smooth, premium pacing: increments of 1% to 2%
-        const increment = Math.floor(Math.random() * 2) + 1; 
+        // Slow realistic loading pace: mostly 1%, with minor random delays (holds)
+        let increment = 1;
+        if (Math.random() > 0.82 && prev > 10 && prev < 95) {
+          increment = 0; // Hold briefly for realistic loading behavior
+        }
         const next = Math.min(prev + increment, 100);
 
-        if (next % 6 === 0) {
+        if (next % 8 === 0 && increment > 0) {
           SoundCore.playTick();
         }
 
@@ -409,7 +413,7 @@ export default function App() {
           setTimeout(() => {
             SoundCore.playSuccessLaser();
             setShowSplash(false);
-          }, 900); // Elegantly hold at 100% complete for 900ms to allow a clean satisfying transition
+          }, 1500); // Elegantly hold at 100% complete for 1500ms so the user appreciates the fully loaded state
           return 100;
         }
         return next;
@@ -461,6 +465,7 @@ export default function App() {
           terminalFeaturesRef.current = parsed;
           setSelectedTool(parsed[0]);
           setFirebaseStatus("OFFLINE/CACHED");
+          setIsSyncing(false); // cached data ready immediately
         }
       } catch (e) {
         console.error("Local features parsing error", e);
@@ -488,6 +493,7 @@ export default function App() {
           });
           safeSetItem("stand_features", JSON.stringify(cloudItems));
           setFirebaseStatus("ACTIVE");
+          setIsSyncing(false); // synchronized cloud data ready
         } else {
           // If Firestore is empty, auto-seed default tools in the background
           DEFAULT_SEED_TOOLS.forEach(async (tool) => {
@@ -510,10 +516,12 @@ export default function App() {
           setSelectedTool(DEFAULT_SEED_TOOLS[0]);
           safeSetItem("stand_features", JSON.stringify(DEFAULT_SEED_TOOLS));
           setFirebaseStatus("ACTIVE");
+          setIsSyncing(false); // defaulted data ready
         }
       }, (error) => {
         console.warn("Firestore access denied or restricted. Using local backup:", error);
         setFirebaseStatus("OFFLINE/CACHED");
+        setIsSyncing(false);
         if (terminalFeaturesRef.current.length === 0) {
           setTerminalFeatures(DEFAULT_SEED_TOOLS);
           terminalFeaturesRef.current = DEFAULT_SEED_TOOLS;
@@ -525,6 +533,7 @@ export default function App() {
     } catch (err) {
       console.warn("Database initialization failed. Using offline backup.", err);
       setFirebaseStatus("OFFLINE/CACHED");
+      setIsSyncing(false);
       if (terminalFeaturesRef.current.length === 0) {
         setTerminalFeatures(DEFAULT_SEED_TOOLS);
         terminalFeaturesRef.current = DEFAULT_SEED_TOOLS;
@@ -1107,7 +1116,7 @@ export default function App() {
               <div style={{ transform: "translateZ(15px)" }} className="w-full mt-5 bg-[#03060a]/90 border border-cyan-500/30 rounded-[20px] p-3 flex items-center gap-4 text-left shadow-[0_8px_30px_rgba(0,0,0,0.8)]">
                 <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-cyan-500/40 bg-slate-950 shrink-0">
                   <img 
-                    src="/src/assets/images/stylish_boy_1782169107213.jpg" 
+                    src={stylishBoyImg} 
                     className="w-full h-full object-cover" 
                     alt="SP BOYXBVSBDB"
                     onError={(e) => {
@@ -1509,7 +1518,25 @@ export default function App() {
 
                 {/* Grid List */}
                 <div className="grid grid-cols-2 gap-3 sm:gap-5">
-                  {filteredTools.length === 0 ? (
+                  {isSyncing ? (
+                    // Render 4 beautiful, glowing skeleton loader slots
+                    Array.from({ length: 4 }).map((_, idx) => (
+                      <div key={idx} className="bg-slate-950/40 border border-[#22d3ee]/10 rounded-2xl p-4 flex flex-col gap-3 min-h-[260px] animate-pulse">
+                        <div className="aspect-square w-full rounded-xl bg-slate-900/60 flex items-center justify-center border border-slate-900/40">
+                          <Activity className="w-6 h-6 text-cyan-500/20 animate-spin" style={{ animationDuration: "3s" }} />
+                        </div>
+                        <div className="h-4 bg-slate-900/80 rounded w-2/3"></div>
+                        <div className="space-y-1.5">
+                          <div className="h-2.5 bg-slate-900/60 rounded w-full"></div>
+                          <div className="h-2.5 bg-slate-900/60 rounded w-5/6"></div>
+                        </div>
+                        <div className="flex gap-2 mt-auto">
+                          <div className="h-8 bg-slate-900/80 rounded-lg flex-1"></div>
+                          <div className="h-8 bg-slate-900/80 rounded-lg flex-1"></div>
+                        </div>
+                      </div>
+                    ))
+                  ) : filteredTools.length === 0 ? (
                     <div className="col-span-full text-center py-20 bg-slate-950/40 border border-[#22d3ee]/10 rounded-3xl p-8 backdrop-blur-md flex flex-col items-center justify-center min-h-[300px] shadow-[inset_0_0_20px_rgba(6,182,212,0.02)]">
                       <div className="w-14 h-14 rounded-full bg-rose-500/5 border border-rose-500/20 flex items-center justify-center mb-4 text-rose-500/70 animate-pulse">
                         <ShieldAlert className="w-7 h-7" />
@@ -1669,7 +1696,7 @@ export default function App() {
                   {/* High fidelity image box */}
                   <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-950 border border-slate-900 shadow-2xl group relative z-10">
                     <img 
-                      src="/src/assets/images/stylish_boy_1782169107213.jpg" 
+                      src={stylishBoyImg} 
                       className="w-full h-full object-cover transition-all duration-700 hover:scale-105" 
                       alt="SP BOYXBVSBDB"
                       onError={(e) => {
