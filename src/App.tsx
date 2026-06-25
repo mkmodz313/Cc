@@ -22,6 +22,7 @@ import {
   Grid,
   LogOut,
   Globe,
+  MessageSquare,
   ChevronRight,
   Sparkles,
   Check,
@@ -170,8 +171,20 @@ export default function App() {
   });
   const [isSignUpMode, setIsSignUpMode] = useState<boolean>(false);
   
-  const [terminalFeatures, setTerminalFeatures] = useState<ToolItem[]>([]);
-  const [selectedTool, setSelectedTool] = useState<ToolItem | null>(null);
+  const [terminalFeatures, setTerminalFeatures] = useState<ToolItem[]>(() => {
+    const cached = safeGetItem("stand_features", "");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return DEFAULT_SEED_TOOLS;
+  });
+  const terminalFeaturesRef = useRef<ToolItem[]>(terminalFeatures);
+  const [selectedTool, setSelectedTool] = useState<ToolItem | null>(() => {
+    return terminalFeatures[0] || null;
+  });
   const [terminalSearchQuery, setTerminalSearchQuery] = useState<string>("");
   const [searchInput, setSearchInput] = useState<string>("");
   const [terminalCategory, setTerminalCategory] = useState<string>("ALL");
@@ -203,6 +216,13 @@ export default function App() {
   const [showSplash, setShowSplash] = useState<boolean>(true);
   const [splashProgress, setSplashProgress] = useState<number>(0);
   const [splashLogs, setSplashLogs] = useState<string[]>([]);
+  
+  // High-Tech Auth Scanning States
+  const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [scanProgress, setScanProgress] = useState<number>(0);
+  const [scanStatus, setScanStatus] = useState<string>("");
+  const [scanLogs, setScanLogs] = useState<string[]>([]);
+
   const [toast, setToast] = useState<{ show: boolean; msg: string; type: "success" | "error" | "info" }>({
     show: false,
     msg: "",
@@ -214,6 +234,7 @@ export default function App() {
   const [showProfileDrawer, setShowProfileDrawer] = useState<boolean>(false);
   const [showAdminDrawer, setShowAdminDrawer] = useState<boolean>(false);
   const [showWelcomeBriefing, setShowWelcomeBriefing] = useState<boolean>(false);
+  const [showPromoAd, setShowPromoAd] = useState<boolean>(false);
   const [showPasscodeModal, setShowPasscodeModal] = useState<boolean>(false);
   const [passcodeInput, setPasscodeInput] = useState<string>("");
 
@@ -353,31 +374,47 @@ export default function App() {
     SoundCore.startSpaceHum();
 
     let logIndex = 0;
+    const speed = 40; // Silky fast ticker (40ms steps) but increments are smaller for maximum smoothness
+    
     const progressInterval = setInterval(() => {
       setSplashProgress((prev) => {
-        const next = Math.min(prev + Math.floor(Math.random() * 8) + 4, 100);
+        // Buttery-smooth, premium pacing: increments of 1% to 2%
+        const increment = Math.floor(Math.random() * 2) + 1; 
+        const next = Math.min(prev + increment, 100);
 
         if (next % 6 === 0) {
           SoundCore.playTick();
         }
 
-        const logTriggers = [0, 15, 30, 45, 60, 75, 90, 100];
+        const logTriggers = [0, 12, 25, 38, 50, 65, 78, 90, 100];
         const triggerIndex = logTriggers.findIndex((t) => prev < t && next >= t);
         if (triggerIndex !== -1 && triggerIndex < SYSTEM_BOOT_LOGS.length) {
           setSplashLogs((l) => [...l, SYSTEM_BOOT_LOGS[triggerIndex]]);
         }
 
         if (next >= 100) {
+          // STRICT ASSURANCE: Splash screen must not exit if Firestore database is still empty or loading
+          const isDataReady = terminalFeaturesRef.current.length > 0;
+          if (!isDataReady) {
+            setSplashLogs((l) => {
+              if (!l.includes("SYS: WAITING FOR SECURE CLOUD SYNCHRONIZATION...")) {
+                return [...l, "SYS: WAITING FOR SECURE CLOUD SYNCHRONIZATION..."];
+              }
+              return l;
+            });
+            return 99; // Hold at 99%
+          }
+
           clearInterval(progressInterval);
           setTimeout(() => {
             SoundCore.playSuccessLaser();
             setShowSplash(false);
-          }, 800);
+          }, 900); // Elegantly hold at 100% complete for 900ms to allow a clean satisfying transition
           return 100;
         }
         return next;
       });
-    }, 120);
+    }, speed);
 
     return () => clearInterval(progressInterval);
   }, [showSplash]);
@@ -399,6 +436,19 @@ export default function App() {
     }
   }, [isLoggedIn, showSplash]);
 
+  // --- AUTOMATIC 30-SECOND HIGH-FIDELITY PROMO AD TRIGGER SYSTEM ---
+  useEffect(() => {
+    if (!isLoggedIn || showSplash) return;
+    
+    // Set periodic timer to present the website creation promo card every 30 seconds
+    const interval = setInterval(() => {
+      setShowPromoAd(true);
+      SoundCore.playSuccessLaser();
+    }, 30000); // 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [isLoggedIn, showSplash]);
+
   // --- FIREBASE AND LOCAL STORAGE RETRIEVAL ENGINE ---
   useEffect(() => {
     // 1. Initialise local cache for fast loading
@@ -408,6 +458,7 @@ export default function App() {
         const parsed = JSON.parse(cached);
         if (parsed && parsed.length > 0) {
           setTerminalFeatures(parsed);
+          terminalFeaturesRef.current = parsed;
           setSelectedTool(parsed[0]);
           setFirebaseStatus("OFFLINE/CACHED");
         }
@@ -427,6 +478,7 @@ export default function App() {
 
         if (cloudItems.length > 0) {
           setTerminalFeatures(cloudItems);
+          terminalFeaturesRef.current = cloudItems;
           setSelectedTool((prev) => {
             if (prev) {
               const matched = cloudItems.find(x => x.id === prev.id);
@@ -454,6 +506,7 @@ export default function App() {
             }
           });
           setTerminalFeatures(DEFAULT_SEED_TOOLS);
+          terminalFeaturesRef.current = DEFAULT_SEED_TOOLS;
           setSelectedTool(DEFAULT_SEED_TOOLS[0]);
           safeSetItem("stand_features", JSON.stringify(DEFAULT_SEED_TOOLS));
           setFirebaseStatus("ACTIVE");
@@ -461,8 +514,9 @@ export default function App() {
       }, (error) => {
         console.warn("Firestore access denied or restricted. Using local backup:", error);
         setFirebaseStatus("OFFLINE/CACHED");
-        if (terminalFeatures.length === 0) {
+        if (terminalFeaturesRef.current.length === 0) {
           setTerminalFeatures(DEFAULT_SEED_TOOLS);
+          terminalFeaturesRef.current = DEFAULT_SEED_TOOLS;
           setSelectedTool(DEFAULT_SEED_TOOLS[0]);
         }
       });
@@ -471,8 +525,9 @@ export default function App() {
     } catch (err) {
       console.warn("Database initialization failed. Using offline backup.", err);
       setFirebaseStatus("OFFLINE/CACHED");
-      if (terminalFeatures.length === 0) {
+      if (terminalFeaturesRef.current.length === 0) {
         setTerminalFeatures(DEFAULT_SEED_TOOLS);
+        terminalFeaturesRef.current = DEFAULT_SEED_TOOLS;
         setSelectedTool(DEFAULT_SEED_TOOLS[0]);
       }
     }
@@ -488,23 +543,124 @@ export default function App() {
       return;
     }
 
-    if (isSignUpMode) {
-      const displayName = authName.trim() || "MK-USER";
-      const uId = "MK-" + Math.floor(1000 + Math.random() * 9000);
-      const newProfile = {
-        name: displayName,
-        userId: uId,
-        pfp: `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=06b6d4&color=0f172a&bold=true`
-      };
-      setUserData(newProfile);
-      safeSetItem("stand_user", JSON.stringify(newProfile));
-      triggerToast("Cryptographic signature key created successfully!", "success");
-      setIsSignUpMode(false);
-    } else {
-      safeSetItem("stand_loggedIn", "true");
-      setIsLoggedIn(true);
-      triggerToast("Permissions authorized! Welcome to HUD Dashboard.", "success");
+    if (isSignUpMode && !authName.trim()) {
+      triggerToast("Operator Signature Name is required!", "error");
+      return;
     }
+
+    // Trigger Modern Scanning Process
+    setIsScanning(true);
+    setScanProgress(0);
+    setScanStatus("RESOLVING AUTH ENDPOINTS");
+    setScanLogs([
+      "SYS: Connecting to Firebase Cloud Cluster...",
+      "SYS: Preparing secure Diffie-Hellman cryptographic exchange..."
+    ]);
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      const increment = Math.floor(Math.random() * 12) + 6;
+      const isDataLoaded = terminalFeaturesRef.current.length > 0;
+
+      if (progress + increment >= 90 && !isDataLoaded) {
+        progress = 90;
+        setScanStatus("SYNCHRONIZING SECURE DATABASE CLUSTER");
+        setScanLogs((prev) => {
+          if (!prev.includes("DB: Streaming bypass configurations from cloud...")) {
+            SoundCore.playTick();
+            return [
+              ...prev,
+              "DB: Streaming bypass configurations from cloud...",
+              "SYS: Awaiting real-time Firestore database handshake..."
+            ];
+          }
+          return prev;
+        });
+      } else {
+        progress += increment;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          
+          setTimeout(() => {
+            setIsScanning(false);
+            if (isSignUpMode) {
+              const displayName = authName.trim() || "MK-USER";
+              const uId = "MK-" + Math.floor(1000 + Math.random() * 9000);
+              const newProfile = {
+                name: displayName,
+                userId: uId,
+                pfp: `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=06b6d4&color=0f172a&bold=true`
+              };
+              setUserData(newProfile);
+              safeSetItem("stand_user", JSON.stringify(newProfile));
+              safeSetItem("stand_loggedIn", "true");
+              setIsLoggedIn(true);
+              triggerToast("Operator key compiled! Welcome to HUD Dashboard.", "success");
+            } else {
+              safeSetItem("stand_loggedIn", "true");
+              setIsLoggedIn(true);
+              triggerToast("Permissions authorized! Welcome to HUD Dashboard.", "success");
+            }
+          }, 500);
+        }
+      }
+      setScanProgress(progress);
+
+      // Add dynamic high-fidelity scanning logs as the progress advances
+      if (progress > 15 && progress <= 35) {
+        setScanStatus("COMPILING CRYPTO SIGNATURE");
+        setScanLogs((prev) => {
+          if (prev.length === 2) {
+            SoundCore.playTick();
+            return [
+              ...prev,
+              "SEC: Cipher keys constructed: AES-256 GCM authenticated.",
+              "SEC: Verifying email signature hashes with Firestore Auth server..."
+            ];
+          }
+          return prev;
+        });
+      } else if (progress > 35 && progress <= 65) {
+        setScanStatus("SYNCHRONIZING TELEMETRY LIBRARIES");
+        setScanLogs((prev) => {
+          if (prev.length === 4) {
+            SoundCore.playTick();
+            return [
+              ...prev,
+              "DB: Firestore persistent client local cache: READY.",
+              "DB: Downloading available mods signature keys..."
+            ];
+          }
+          return prev;
+        });
+      } else if (progress > 65 && progress <= 85) {
+        setScanStatus("DECRYPTING BYPASS SYSTEM CODES");
+        setScanLogs((prev) => {
+          if (prev.length === 6) {
+            SoundCore.playTick();
+            return [
+              ...prev,
+              "SYS: Decoupling MT decompiler and smali refactoring units...",
+              "SEC: 4 high-fidelity bypass injectors mapped in cache memory."
+            ];
+          }
+          return prev;
+        });
+      } else if (progress > 85 && progress < 100) {
+        setScanStatus("AUTHORIZING INGRESS CHANNELS");
+        setScanLogs((prev) => {
+          if (prev.length === 8) {
+            SoundCore.playSuccessLaser();
+            return [
+              ...prev,
+              "SYS: Handshake success! Initializing Elite HUD Dashboard overlay."
+            ];
+          }
+          return prev;
+        });
+      }
+    }, 140);
   };
 
   // --- LOGOUT SESSION ---
@@ -762,107 +918,230 @@ export default function App() {
       <AnimatePresence>
         {showSplash && (
           <motion.div 
-            exit={{ opacity: 0, scale: 1.05, filter: "blur(12px)" }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[99999] bg-[#030509] flex flex-col justify-center items-center overflow-hidden select-none"
+            exit={{ opacity: 0, scale: 1.1, filter: "blur(20px)" }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-[99999] bg-[#02050a] flex flex-col justify-center items-center overflow-hidden select-none [perspective:1500px]"
           >
-            {/* Background glowing orb decorators (super-smooth CSS hardware-accelerated animations) */}
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-cyan-500/10 blur-[120px] animate-pulse pointer-events-none" style={{ animationDuration: "8s" }}></div>
-            <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-indigo-500/5 blur-[150px] animate-pulse pointer-events-none" style={{ animationDuration: "12s" }}></div>
+            {/* Ambient cyber nebula space dust flares */}
+            <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-cyan-500/[0.08] blur-[140px] animate-pulse pointer-events-none" style={{ animationDuration: "10s" }}></div>
+            <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-purple-500/[0.05] blur-[160px] animate-pulse pointer-events-none" style={{ animationDuration: "14s" }}></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-blue-500/[0.04] blur-[120px] pointer-events-none"></div>
             
-            {/* Fine line vector scangrid overlay */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.12)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-10" />
-            <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(6,182,212,0.015)_50%,transparent_50%)] bg-[size:100%_3px] pointer-events-none z-10" />
+            {/* Fine line digital blueprint grid mapping overlays */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.15)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none z-10 opacity-75" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(6,182,212,0.025)_50%,transparent_50%)] bg-[size:100%_4px] pointer-events-none z-10" />
 
-            {/* Core Interactive Loader Frame */}
-            <div className="relative z-20 flex flex-col items-center max-w-xl px-8 w-full text-center">
-              
-              {/* Outer Circular Sci-Fi Radar Target */}
-              <div className="relative w-48 h-48 mb-8 flex items-center justify-center">
-                {/* Outer spinning tick marks */}
-                <div className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-500/20 animate-spin" style={{ animationDuration: "25s" }}></div>
-                {/* Secondary counter-rotating ring */}
-                <div className="absolute inset-3 rounded-full border border-indigo-500/35 border-t-transparent animate-spin" style={{ animationDuration: "10s", animationDirection: "reverse" }}></div>
-                {/* Inner target crosshairs */}
-                <div className="absolute inset-6 rounded-full border border-cyan-500/10 flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping"></div>
+            {/* Hardware horizontal sweep laser scanning line */}
+            <motion.div 
+              animate={{ top: ["0%", "100%", "0%"] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent shadow-[0_0_15px_rgba(6,182,212,0.5)] pointer-events-none z-25"
+            />
+
+            {/* Core Interactive Loader 3D Perspective Card */}
+            <motion.div 
+              initial={{ rotateX: 12, rotateY: -8, scale: 0.95 }}
+              animate={{ rotateX: 2, rotateY: -1, scale: 1 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              style={{ transformStyle: "preserve-3d" }}
+              className="relative z-20 flex flex-col items-center max-w-xl px-6 md:px-10 w-full text-center transform-gpu"
+            >
+              {/* Outer Circular Sci-Fi Radar Core */}
+              <div style={{ transform: "translateZ(45px)" }} className="relative w-52 h-52 mb-6 flex items-center justify-center">
+                {/* 1. Outer cyan spinning bracket ring */}
+                <div className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-500/30 animate-spin" style={{ animationDuration: "35s" }}></div>
+                
+                {/* 2. Secondary purple spinning bracket ring */}
+                <div className="absolute inset-2.5 rounded-full border border-purple-500/40 border-t-transparent animate-spin" style={{ animationDuration: "15s", animationDirection: "reverse" }}></div>
+                
+                {/* 3. Outer ticks gauge ring */}
+                <div className="absolute inset-5 rounded-full border border-slate-800/60 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border border-dashed border-cyan-500/10 animate-pulse" style={{ animationDuration: "3s" }}></div>
                 </div>
 
-                {/* Main Progress Indicator Circle */}
+                {/* Left diagnostic HUD text block */}
+                <div className="absolute -left-12 top-1/2 -translate-y-1/2 text-left hidden sm:block pointer-events-none">
+                  <p className="text-[7px] font-mono font-extrabold text-slate-500 tracking-wider">SECURE_CORE</p>
+                  <p className="text-[9px] font-mono font-black text-cyan-400 tracking-widest uppercase">V4.2_ELITE</p>
+                  <p className="text-[7px] font-mono font-extrabold text-slate-500 tracking-wider mt-2.5">PROXY_TUNNEL</p>
+                  <p className="text-[9px] font-mono font-black text-purple-400 tracking-widest uppercase">127.0.0.1_OK</p>
+                </div>
+
+                {/* Right diagnostic HUD text block */}
+                <div className="absolute -right-12 top-1/2 -translate-y-1/2 text-right hidden sm:block pointer-events-none">
+                  <p className="text-[7px] font-mono font-extrabold text-slate-500 tracking-wider">SATELLITE</p>
+                  <p className="text-[9px] font-mono font-black text-emerald-400 tracking-widest uppercase font-sans">LINK_ONLINE</p>
+                  <p className="text-[7px] font-mono font-extrabold text-slate-500 tracking-wider mt-2.5">VOLTAGE</p>
+                  <p className="text-[9px] font-mono font-black text-amber-500 tracking-widest">STABLE_1.18V</p>
+                </div>
+
+                {/* Main dynamic SVG circular speedometer loader */}
                 <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                  <circle cx="96" cy="96" r="64" stroke="rgba(6, 182, 212, 0.05)" strokeWidth="3" fill="transparent" />
+                  <circle cx="104" cy="104" r="76" stroke="rgba(6, 182, 212, 0.04)" strokeWidth="4.5" fill="transparent" />
                   <circle 
-                    cx="96" 
-                    cy="96" 
-                    r="64" 
-                    stroke="url(#cyanGlow)" 
-                    strokeWidth="3.5" 
+                    cx="104" 
+                    cy="104" 
+                    r="76" 
+                    stroke="url(#eliteNeonGlow)" 
+                    strokeWidth="4.5" 
                     fill="transparent" 
-                    strokeDasharray="402" 
-                    strokeDashoffset={402 - (402 * splashProgress) / 100} 
+                    strokeDasharray="477" 
+                    strokeDashoffset={477 - (477 * splashProgress) / 100} 
                     strokeLinecap="round"
                     className="transition-all duration-150"
                   />
                   <defs>
-                    <linearGradient id="cyanGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#06b6d4" />
-                      <stop offset="100%" stopColor="#3b82f6" />
+                    <linearGradient id="eliteNeonGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#00f2fe" />
+                      <stop offset="50%" stopColor="#4facfe" />
+                      <stop offset="100%" stopColor="#9b5de5" />
                     </linearGradient>
                   </defs>
                 </svg>
 
-                {/* Middle Core Info Readout */}
+                {/* Inner target crosshair dots */}
+                <div className="absolute inset-10 rounded-full border border-cyan-500/10 flex items-center justify-center">
+                  <div className="w-2.5 h-2.5 bg-[#00f2fe] rounded-full animate-ping"></div>
+                </div>
+
+                {/* Center digital readout block */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="font-cyber text-2xl font-black text-cyan-400 tracking-wider drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]">
+                  <span className="font-cyber text-3xl font-black text-[#00f2fe] tracking-wider drop-shadow-[0_0_15px_rgba(0,242,254,0.7)]">
                     {splashProgress}%
                   </span>
-                  <span className="text-[7px] font-mono text-slate-500 font-extrabold uppercase tracking-[0.2em] mt-1">
-                    DECRYPTING
+                  <span className="text-[7px] font-mono text-slate-500 font-extrabold uppercase tracking-[0.25em] mt-1.5">
+                    DECRYPTING CORE
                   </span>
                 </div>
               </div>
 
-              {/* Title & Brand Header */}
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/5 border border-cyan-500/20 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                  <span className="text-[8px] font-mono text-cyan-300 font-extrabold uppercase tracking-widest">SECURE OPERATOR INTERACTION</span>
+              {/* Mini High-Tech Owner Avatar Container */}
+              <div style={{ transform: "translateZ(35px)" }} className="mb-5 flex flex-col items-center">
+                <div className="w-16 h-16 rounded-xl p-[1.5px] bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-500 shadow-[0_0_20px_rgba(6,182,212,0.4)] relative overflow-visible">
+                  {/* Glowing bracket corner markings */}
+                  <div className="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 border-t-2 border-l-2 border-cyan-400"></div>
+                  <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 border-t-2 border-r-2 border-cyan-400"></div>
+                  <div className="absolute -bottom-1.5 -left-1.5 w-3.5 h-3.5 border-b-2 border-l-2 border-cyan-400"></div>
+                  <div className="absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 border-b-2 border-r-2 border-cyan-400"></div>
+                  
+                  <div className="w-full h-full rounded-lg overflow-hidden bg-slate-950 border border-slate-900">
+                    <img 
+                      src={stylishBoyImg} 
+                      className="w-full h-full object-cover" 
+                      alt="Umar Malang" 
+                    />
+                  </div>
                 </div>
-                <h1 className="font-cyber text-3xl font-black tracking-[0.2em] text-white uppercase drop-shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+                <div className="flex items-center gap-1 mt-2 bg-cyan-950/40 px-2 py-0.5 border border-cyan-500/20 rounded">
+                  <span className="w-1 h-1 bg-cyan-400 rounded-full animate-ping"></span>
+                  <span className="text-[7.5px] font-mono text-cyan-300 font-extrabold tracking-[0.15em] uppercase">
+                    SYS_OWNER: UMAR MALANG
+                  </span>
+                </div>
+              </div>
+
+              {/* Title & Brand Header Section */}
+              <div style={{ transform: "translateZ(30px)" }} className="space-y-3.5">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-cyan-500/5 border border-cyan-500/25 rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.4)]">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                  </span>
+                  <span className="text-[8px] font-mono text-cyan-300 font-extrabold uppercase tracking-[0.15em]">SECURE HIGH-END COMPILER MODULE</span>
+                </div>
+                
+                <h1 className="font-cyber text-4xl font-black tracking-[0.25em] text-white uppercase drop-shadow-[0_0_25px_rgba(0,242,254,0.5)]">
                   MKMODZ <span className="text-cyan-400">ELITE</span>
                 </h1>
-                <p className="font-mono text-[9px] text-indigo-400/80 tracking-[0.25em] font-extrabold uppercase">
-                  HIGH-PERFORMANCE COMPILING GATEWAY
+                <p className="font-mono text-[9px] text-indigo-400/80 tracking-[0.3em] font-extrabold uppercase">
+                  ESTABLISHING CRYPTOGRAPHIC BYPASS DECODER
                 </p>
               </div>
 
-              {/* Progress Bar Line */}
-              <div className="w-full max-w-sm mt-8 bg-slate-950/80 border border-slate-900 rounded-full h-1.5 p-0.5 overflow-hidden relative shadow-inner">
-                <div 
-                  className="bg-gradient-to-r from-cyan-500 to-indigo-500 h-full rounded-full transition-all duration-150 relative shadow-[0_0_10px_rgba(6,182,212,0.5)]"
-                  style={{ width: `${splashProgress}%` }}
-                >
-                  <div className="absolute right-0 top-0 bottom-0 w-2 bg-white rounded-full animate-pulse shadow-[0_0_8px_rgba(255,255,255,1)]" />
+              {/* JAW-DROPPING SEGMENTED HOLOGRAPHIC EQUALIZER LOADING BAR */}
+              <div style={{ transform: "translateZ(20px)" }} className="w-full max-w-sm mt-8">
+                <div className="flex gap-1 justify-between p-1.5 bg-slate-950/85 border border-slate-900 rounded-2xl shadow-[inset_0_2px_8px_rgba(0,0,0,0.8)]">
+                  {Array.from({ length: 22 }).map((_, idx) => {
+                    const threshold = (idx + 1) * (100 / 22);
+                    const isActive = splashProgress >= threshold;
+                    return (
+                      <div 
+                        key={idx}
+                        className={`h-7 flex-1 rounded-[3px] transition-all duration-300 relative overflow-hidden ${
+                          isActive 
+                            ? "bg-gradient-to-t from-[#00f2fe] via-[#00f2fe]/80 to-[#9b5de5] shadow-[0_0_12px_rgba(0,242,254,0.6)]" 
+                            : "bg-slate-950/90 border border-slate-900/40"
+                        }`}
+                      >
+                        {isActive && (
+                          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.15)_100%,transparent)] animate-pulse" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex justify-between items-center px-1.5 mt-2.5 text-[7.5px] font-mono text-slate-500 font-black tracking-widest uppercase">
+                  <span>BYTE SCANNER STREAM: READY</span>
+                  <span className="text-[#00f2fe] animate-pulse">MEM_MAP_INITIALISED_SUCCESS</span>
                 </div>
               </div>
 
               {/* Professional Real-Time Scrolling Compilation Console Logs */}
-              <div className="w-full mt-6 bg-[#04070c]/90 border border-slate-900 rounded-2xl p-4 text-left font-mono text-[9px] text-cyan-500/85 min-h-36 max-h-40 overflow-y-auto space-y-1.5 shadow-2xl relative scrollbar-none">
-                <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-[#04070c] to-transparent pointer-events-none z-10"></div>
+              <div style={{ transform: "translateZ(10px)" }} className="w-full mt-6 bg-[#03060a]/95 border border-slate-900/90 rounded-[24px] p-4 text-left font-mono text-[9px] text-cyan-400 min-h-36 max-h-40 overflow-y-auto space-y-2 shadow-[-10px_15px_40px_rgba(0,0,0,0.9)] relative scrollbar-none">
+                <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#03060a] to-transparent pointer-events-none z-10"></div>
                 
-                <div className="text-slate-500 uppercase tracking-widest font-black text-[8px] border-b border-slate-900 pb-2 mb-2 flex justify-between">
+                <div className="text-slate-500 uppercase tracking-widest font-black text-[7.5px] border-b border-slate-900/80 pb-2.5 mb-2.5 flex justify-between">
                   <span>🔐 DECRYPTION SYSTEM BYPASS HANDSHAKE</span>
                   <span className="animate-pulse text-cyan-400 font-bold">ACTIVE INJECTORS STATUS: OK</span>
                 </div>
                 
                 {splashLogs.map((log, index) => (
-                  <div key={index} className="flex gap-2.5 leading-relaxed items-center">
-                    <span className="text-indigo-400/60 font-black shrink-0 font-mono">[0{index + 1}]</span>
-                    <span className="text-slate-300 font-mono tracking-wide">{log}</span>
+                  <div key={index} className="flex gap-3 leading-relaxed items-start">
+                    <span className="text-indigo-400 font-black shrink-0 font-mono text-[8px] select-none">❯_0{index + 1}</span>
+                    <span className="text-slate-300 font-mono tracking-wide leading-relaxed uppercase">{log}</span>
                   </div>
                 ))}
               </div>
-            </div>
+
+              {/* Operator Secure Face ID Handshake check panel */}
+              <div style={{ transform: "translateZ(15px)" }} className="w-full mt-5 bg-[#03060a]/90 border border-cyan-500/30 rounded-[20px] p-3 flex items-center gap-4 text-left shadow-[0_8px_30px_rgba(0,0,0,0.8)]">
+                <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-cyan-500/40 bg-slate-950 shrink-0">
+                  <img 
+                    src="/src/assets/images/stylish_boy_1782169107213.jpg" 
+                    className="w-full h-full object-cover" 
+                    alt="SP BOYXBVSBDB"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop";
+                    }}
+                  />
+                  {/* Glowing laser scan sweeping inside the portrait box */}
+                  <motion.div 
+                    animate={{ top: ["0%", "100%", "0%"] }}
+                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                    className="absolute left-0 right-0 h-[1.5px] bg-cyan-400 shadow-[0_0_8px_#22d3ee] pointer-events-none"
+                  />
+                  {/* Holographic matrix ticks */}
+                  <div className="absolute inset-0 border border-cyan-500/10 pointer-events-none" />
+                </div>
+                <div className="flex-1 min-w-0 font-mono">
+                  <div className="text-[7px] text-slate-500 uppercase tracking-widest font-black leading-none">
+                    AUTHORIZED HANDSHAKE OBJECT
+                  </div>
+                  <h4 className="text-[11px] text-slate-200 font-extrabold tracking-wider uppercase mt-1 truncate">
+                    SP BOYXBVSBDB 👑
+                  </h4>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+                    </span>
+                    <span className="text-[7.5px] text-emerald-400 font-black tracking-widest uppercase">
+                      CLEARANCE_MAX_LEVEL
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -902,10 +1181,11 @@ export default function App() {
                       <input 
                         type="text" 
                         required
+                        disabled={isScanning}
                         value={authName}
                         onChange={(e) => setAuthName(e.target.value)}
                         placeholder="e.g. Killers~Boy" 
-                        className="w-full bg-slate-950 border border-slate-900 focus:border-cyan-500 rounded-xl py-3.5 pl-11 pr-4 text-xs font-mono text-cyan-300 outline-none uppercase transition-all"
+                        className="w-full bg-slate-950 border border-slate-900 focus:border-cyan-500 rounded-xl py-3.5 pl-11 pr-4 text-xs font-mono text-cyan-300 outline-none uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -920,10 +1200,11 @@ export default function App() {
                     <input 
                       type="email" 
                       required
+                      disabled={isScanning}
                       value={authEmail}
                       onChange={(e) => setAuthEmail(e.target.value)}
                       placeholder="operator@mkmodz.net" 
-                      className="w-full bg-slate-950 border border-slate-900 focus:border-cyan-500 rounded-xl py-3.5 pl-11 pr-4 text-xs font-mono text-cyan-300 outline-none transition-all"
+                      className="w-full bg-slate-950 border border-slate-900 focus:border-cyan-500 rounded-xl py-3.5 pl-11 pr-4 text-xs font-mono text-cyan-300 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -937,32 +1218,99 @@ export default function App() {
                     <input 
                       type="password" 
                       required
+                      disabled={isScanning}
                       value={authPass}
                       onChange={(e) => setAuthPass(e.target.value)}
                       placeholder="••••••••" 
-                      className="w-full bg-slate-950 border border-slate-900 focus:border-cyan-500 rounded-xl py-3.5 pl-11 pr-4 text-xs font-mono text-cyan-300 outline-none transition-all"
+                      className="w-full bg-slate-950 border border-slate-900 focus:border-cyan-500 rounded-xl py-3.5 pl-11 pr-4 text-xs font-mono text-cyan-300 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
                 
-                <button 
-                  type="submit" 
-                  className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black font-mono text-xs tracking-widest rounded-xl transition-all uppercase flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-95 mt-2"
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>
-                    {isSignUpMode ? "GENERATE SECURITY CREDENTIALS" : "SYSTEM RECON_MODE INITIATION"}
-                  </span>
-                </button>
+                {isScanning ? (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    className="space-y-4 p-5 bg-gradient-to-b from-[#09101e] to-[#03060a] border-2 border-cyan-500/40 rounded-2xl relative overflow-hidden shadow-[0_0_35px_rgba(6,182,212,0.25),inset_0_1px_2px_rgba(255,255,255,0.05)] mt-4 text-left"
+                  >
+                    {/* Matrix line mesh grid overlay */}
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.02)_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none"></div>
+                    
+                    {/* Continuous physical decompiler scanning laser */}
+                    <motion.div 
+                      animate={{ top: ["0%", "100%", "0%"] }}
+                      transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+                      className="absolute left-0 right-0 h-[2.5px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_12px_#22d3ee,0_0_20px_#06b6d4] pointer-events-none z-10"
+                    />
+
+                    <div className="flex items-center gap-3 border-b border-slate-900 pb-3">
+                      {/* Spinning interactive Radar Target */}
+                      <div className="relative w-8 h-8 shrink-0 flex items-center justify-center">
+                        <div className="absolute inset-0 rounded-full border border-dashed border-cyan-400/40 animate-spin"></div>
+                        <div className="absolute inset-1.5 rounded-full border border-indigo-500/50 border-t-transparent animate-spin" style={{ animationDuration: "3s", animationDirection: "reverse" }}></div>
+                        <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping"></div>
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[8px] font-mono text-slate-500 uppercase tracking-widest font-black block">SYSTEM INTEGRATION PROCESS</span>
+                        <h4 className="text-[10px] font-mono text-cyan-400 font-extrabold tracking-wider uppercase truncate animate-pulse">
+                          {scanStatus}
+                        </h4>
+                      </div>
+                      
+                      <div className="text-right font-mono text-xs font-black text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]">
+                        {scanProgress}%
+                      </div>
+                    </div>
+
+                    {/* Progress Bar Container with dual segment neon indicators */}
+                    <div className="w-full bg-slate-950 border border-slate-900 h-3 rounded-xl overflow-hidden relative p-[2px]">
+                      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:8px_100%] pointer-events-none"></div>
+                      <div 
+                        className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-[#9d4edd] rounded-lg transition-all duration-150 relative shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+                        style={{ width: `${scanProgress}%` }}
+                      >
+                        <div className="absolute right-0 top-0 bottom-0 w-1 bg-white rounded-full animate-ping"></div>
+                      </div>
+                    </div>
+
+                    {/* Holographic Log Terminal Screen with dynamic command outputs */}
+                    <div className="bg-[#020408] border border-slate-900/80 p-3 rounded-xl font-mono text-[8px] text-slate-400 space-y-1.5 h-28 overflow-y-auto scrollbar-none text-left relative shadow-[inset_0_2px_8px_rgba(0,0,0,0.8)]">
+                      {scanLogs.map((log, idx) => (
+                        <div key={idx} className="flex gap-2 items-start">
+                          <span className="text-cyan-500/60 shrink-0 select-none">❯</span>
+                          <span className="text-slate-300 font-mono tracking-wide leading-relaxed">{log}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Scanning Footprint indicator */}
+                    <div className="flex justify-between items-center text-[7px] font-mono text-slate-600 font-bold tracking-widest uppercase">
+                      <span>SECURE CACHING DECRYPTER</span>
+                      <span className="text-emerald-500 animate-pulse">FIREBASE AUTH STREAMING OK</span>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <button 
+                    type="submit" 
+                    className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black font-mono text-xs tracking-widest rounded-xl transition-all uppercase flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-95 mt-2 shadow-[0_4px_20px_rgba(6,182,212,0.3)] hover:shadow-[0_6px_25px_rgba(6,182,212,0.4)]"
+                  >
+                    <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
+                    <span>
+                      {isSignUpMode ? "GENERATE SECURITY CREDENTIALS" : "SYSTEM RECON_MODE INITIATION"}
+                    </span>
+                  </button>
+                )}
               </form>
               
               <div className="mt-6 text-center">
                 <button 
+                  disabled={isScanning}
                   onClick={() => {
                     SoundCore.playTick();
                     setIsSignUpMode(!isSignUpMode);
                   }}
-                  className="text-[10px] font-mono text-cyan-400 hover:text-cyan-300 tracking-widest uppercase transition-all bg-transparent border-none cursor-pointer"
+                  className="text-[10px] font-mono text-cyan-400 hover:text-cyan-300 tracking-widest uppercase transition-all bg-transparent border-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {isSignUpMode 
                     ? "ALREADY GENERATED? AUTHORIZE ACCESS" 
@@ -1299,76 +1647,101 @@ export default function App() {
 
               </div>
 
-              {/* Right col (Spec preview panel) */}
+              {/* Right col (Owner Profile Showcase Panel) */}
               <div className="lg:col-span-4 lg:sticky lg:top-6 flex flex-col gap-6">
-                <div className="bg-[#070b13]/90 border border-[#22d3ee]/15 p-5 rounded-2xl flex flex-col shadow-2xl relative overflow-hidden text-left">
-                  <div className="absolute top-0 right-0 p-8 w-32 h-32 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="bg-[#070b13]/90 border-2 border-cyan-500/30 p-6 rounded-3xl flex flex-col shadow-[0_0_40px_rgba(6,182,212,0.15)] relative overflow-hidden text-left">
+                  {/* Digital blueprint grid pattern */}
+                  <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.01)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none"></div>
+                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-cyan-500/[0.04] rounded-full blur-3xl pointer-events-none"></div>
                   
-                  <div className="flex items-center gap-2 border-b border-slate-900 pb-4 mb-4">
-                    <Cpu className="w-5 h-5 text-cyan-400 animate-pulse" />
-                    <h3 className="font-cyber text-xs font-black text-white tracking-widest uppercase">
-                      INJECTOR DECRYPT_SPEC
-                    </h3>
+                  <div className="flex items-center justify-between border-b border-slate-900 pb-4 mb-5 relative z-10">
+                    <div className="flex items-center gap-2.5">
+                      <ShieldCheck className="w-5 h-5 text-cyan-400 animate-pulse" />
+                      <h3 className="font-cyber text-xs font-black text-white tracking-widest uppercase">
+                        OWNER CONSOLE PROFILE
+                      </h3>
+                    </div>
+                    <span className="px-2.5 py-0.5 bg-cyan-500/10 border border-cyan-500/20 rounded text-[7px] font-mono text-cyan-400 font-extrabold tracking-widest uppercase animate-pulse">
+                      ONLINE
+                    </span>
                   </div>
 
-                  {selectedTool ? (
-                    <div className="space-y-4">
-                      <div className="aspect-video w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-900 relative">
-                        <img 
-                          src={selectedTool.img} 
-                          className="w-full h-full object-cover" 
-                          alt={selectedTool.name}
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=300&auto=format&fit=crop";
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
-                        <span className="absolute bottom-3 left-3 px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/25 rounded text-[8px] font-mono text-cyan-400 font-extrabold uppercase tracking-widest">
-                          {selectedTool.category}
-                        </span>
-                      </div>
-
-                      <div>
-                        <h4 className="font-cyber text-sm font-black text-white uppercase tracking-wider">
-                          {selectedTool.name}
-                        </h4>
-                        <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">
-                          {selectedTool.description}
-                        </p>
-                      </div>
-
-                      <div className="pt-4 border-t border-slate-900 flex gap-2">
-                        <a 
-                          href={selectedTool.link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          onClick={() => SoundCore.playSuccessLaser()}
-                          className="flex-1 text-[10px] font-mono font-black uppercase text-center py-2.5 rounded-xl transition-all flex items-center justify-center gap-1 px-2 text-decoration-none shadow-md btn-gold-3d"
-                        >
-                          <span>LAUNCH INJECTOR</span>
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                        <a 
-                          href="https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          onClick={() => SoundCore.playBeep()}
-                          className="flex-1 text-[10px] font-mono font-black uppercase text-center py-2.5 rounded-xl transition-all flex items-center justify-center gap-1 px-2 text-decoration-none shadow-md btn-cyan-3d"
-                        >
-                          <span>VIP GROUP</span>
-                          <Users className="w-3.5 h-3.5" />
-                        </a>
-                      </div>
-
+                  {/* High fidelity image box */}
+                  <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-950 border border-slate-900 shadow-2xl group relative z-10">
+                    <img 
+                      src="/src/assets/images/stylish_boy_1782169107213.jpg" 
+                      className="w-full h-full object-cover transition-all duration-700 hover:scale-105" 
+                      alt="SP BOYXBVSBDB"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=300&auto=format&fit=crop";
+                      }}
+                    />
+                    {/* Matrix cyber HUD corners overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent"></div>
+                    
+                    {/* Floating HUD clearance tag */}
+                    <div className="absolute top-4 left-4 px-3 py-1 bg-slate-950/80 border border-cyan-500/30 rounded-lg text-[8px] font-mono text-cyan-400 font-black uppercase tracking-wider backdrop-blur-sm">
+                      SYS_ROLE: OVERLORD
                     </div>
-                  ) : (
-                    <div className="py-16 text-center">
-                      <Terminal className="w-10 h-10 text-slate-800 mx-auto mb-3 animate-pulse" />
-                      <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
-                        AWAITING MODULE DIRECT SELECTION
-                      </p>
+
+                    {/* continuous scanline */}
+                    <motion.div 
+                      animate={{ top: ["0%", "100%", "0%"] }}
+                      transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                      className="absolute left-0 right-0 h-[1.5px] bg-cyan-400 shadow-[0_0_10px_#22d3ee] pointer-events-none"
+                    />
+                  </div>
+
+                  {/* Owner detailed status fields */}
+                  <div className="mt-5 space-y-4 relative z-10">
+                    <div>
+                      <div className="text-[7.5px] font-mono text-slate-500 tracking-wider uppercase">
+                        Operator Code signature
+                      </div>
+                      <h4 className="font-cyber text-lg font-black text-white uppercase tracking-wider mt-1 flex items-center gap-2">
+                        SP BOYXBVSBDB 👑
+                      </h4>
                     </div>
-                  )}
+
+                    <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-900/60 text-left">
+                      <div className="p-2.5 bg-slate-950/60 border border-slate-900 rounded-xl">
+                        <span className="text-[7px] font-mono text-slate-500 uppercase block">SYSTEM DESIGNER</span>
+                        <span className="text-[10px] font-mono font-bold text-cyan-300 uppercase block mt-1">UMAR MALANG</span>
+                      </div>
+                      <div className="p-2.5 bg-slate-950/60 border border-slate-900 rounded-xl">
+                        <span className="text-[7px] font-mono text-slate-500 uppercase block">CONSOLE CLEARANCE</span>
+                        <span className="text-[10px] font-mono font-bold text-amber-400 uppercase block mt-1">MK-6720 ELITE</span>
+                      </div>
+                      <div className="p-2.5 bg-[#03060a] border border-slate-900 rounded-xl col-span-2 text-center py-3">
+                        <span className="text-[7px] font-mono text-slate-400 uppercase block tracking-wider">OFFICIAL WEBSITE OWNER</span>
+                        <span className="text-[10.5px] font-mono font-extrabold text-[#ffd700] uppercase block mt-1">SP BOYXBVSBDB DIRECT LINE</span>
+                      </div>
+                    </div>
+
+                    {/* Action links */}
+                    <div className="pt-3 border-t border-slate-900/60 flex flex-col gap-2.5">
+                      <a 
+                        href="https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        onClick={() => SoundCore.playSuccessLaser()}
+                        className="w-full text-[10px] font-mono font-black uppercase text-center py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 text-decoration-none shadow-md btn-gold-3d cursor-pointer"
+                      >
+                        <Users className="w-3.5 h-3.5" />
+                        <span>JOIN OFFICIAL CHANNEL</span>
+                      </a>
+                      <a 
+                        href="https://wa.me/923259835848" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        onClick={() => SoundCore.playBeep()}
+                        className="w-full text-[10px] font-mono font-black uppercase text-center py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 text-decoration-none shadow-md btn-cyan-3d cursor-pointer"
+                      >
+                        <Terminal className="w-3.5 h-3.5" />
+                        <span>CONTACT CHIEF OPERATOR</span>
+                      </a>
+                    </div>
+                  </div>
 
                 </div>
               </div>
@@ -1803,78 +2176,96 @@ export default function App() {
       {/* 4. MODERN WELCOME BRIEFING DIALOG OVERLAY */}
       <AnimatePresence>
         {showWelcomeBriefing && (
-          <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 [perspective:1500px]">
+            {/* Ambient blur backdrop */}
             <motion.div 
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.8 }}
+              animate={{ opacity: 0.9 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/95 backdrop-blur-md"
+              className="absolute inset-0 bg-black/95 backdrop-blur-2xl"
             />
 
+            {/* Immersive 3D physical card reacting on hover */}
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="relative w-full max-w-lg bg-[#070b13]/90 border border-[#22d3ee]/25 rounded-3xl p-6 md:p-8 shadow-[0_0_50px_rgba(6,182,212,0.25)] backdrop-blur-md overflow-hidden text-left"
+              initial={{ opacity: 0, scale: 0.8, y: 60, rotateX: 20, rotateY: -15 }}
+              animate={{ opacity: 1, scale: 1, y: 0, rotateX: 6, rotateY: -3 }}
+              exit={{ opacity: 0, scale: 0.8, y: 60, rotateX: 20, rotateY: -15 }}
+              whileHover={{ rotateX: 1, rotateY: 3, scale: 1.01 }}
+              transition={{ type: "spring", damping: 22, stiffness: 140 }}
+              style={{ transformStyle: "preserve-3d" }}
+              className="relative w-full max-w-lg bg-gradient-to-b from-[#0d172e] to-[#03060c] border-2 border-cyan-500/50 rounded-[36px] p-6 md:p-8 shadow-[-25px_35px_80px_rgba(0,0,0,0.95),0_0_90px_rgba(6,182,212,0.3),inset_0_1px_3px_rgba(255,255,255,0.15)] backdrop-blur-md overflow-hidden text-left transform-gpu cursor-default"
             >
-              <div className="absolute top-0 right-0 p-8 w-40 h-40 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+              {/* Dynamic blueprint line coordinate grid overlay */}
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.025)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none rounded-[36px]" />
+              
+              {/* Corner tech decals */}
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyan-400 pointer-events-none rounded-tl-[36px] opacity-80" />
+              <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-cyan-400 pointer-events-none rounded-tr-[36px] opacity-80" />
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-cyan-400 pointer-events-none rounded-bl-[36px] opacity-80" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-cyan-400 pointer-events-none rounded-br-[36px] opacity-80" />
 
-              {/* Verified Badge Header */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-900 pb-5 mb-5 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-                    <ShieldCheck className="w-5 h-5" />
+              {/* Cyan and magenta cyber orbs */}
+              <div className="absolute -top-16 -right-16 w-48 h-48 bg-gradient-to-br from-cyan-400/20 to-purple-600/15 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+
+              {/* 3D Floating Header */}
+              <div style={{ transform: "translateZ(55px)" }} className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-900/90 pb-5 mb-5 gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/25 to-emerald-700/5 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.35)]">
+                    <ShieldCheck className="w-7 h-7 animate-pulse" />
                   </div>
                   <div>
-                    <h2 className="font-cyber text-sm font-black text-emerald-400 uppercase tracking-widest leading-none">
+                    <h2 className="font-cyber text-base font-black text-emerald-400 uppercase tracking-widest leading-none drop-shadow-[0_0_10px_rgba(16,185,129,0.4)]">
                       BYPASS GRANTED
                     </h2>
-                    <p className="text-[9px] text-slate-500 font-mono uppercase tracking-widest mt-1">
-                      OPERATOR SPECIFICATIONS LOADED
+                    <p className="text-[9px] text-slate-500 font-mono uppercase tracking-widest mt-1.5 font-bold">
+                      OPERATOR STANDARDS DYNAMICALLY LOADED
                     </p>
                   </div>
                 </div>
 
                 <div className="text-right font-mono self-end sm:self-center">
-                  <span id="welc-clock" className="text-[9px] text-[#ffd700] font-extrabold bg-[#ffd700]/5 border border-[#ffd700]/15 px-2.5 py-1 rounded">
+                  <span id="welc-clock" className="text-[9.5px] text-[#ffd700] font-black bg-[#ffd700]/5 border border-[#ffd700]/30 px-3.5 py-2 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.6)] font-mono">
                     {terminalClock} UTC
                   </span>
                 </div>
               </div>
 
-              {/* Operator details block */}
-              <div className="bg-[#04070d] border border-slate-900 rounded-2xl p-4 mb-6 grid grid-cols-2 gap-4 text-xs font-mono">
+              {/* Operator details block with deep physical inset shadow */}
+              <div 
+                style={{ transform: "translateZ(35px)" }} 
+                className="bg-[#02050a] border-2 border-slate-900/90 rounded-2xl p-5 mb-6 grid grid-cols-2 gap-4 text-xs font-mono shadow-[inset_0_2px_12px_rgba(0,0,0,0.9),0_4px_12px_rgba(0,0,0,0.5)]"
+              >
                 <div>
-                  <span className="text-[9px] text-slate-500 uppercase tracking-widest block font-bold">OPERATOR IDENTITY:</span>
+                  <span className="text-[8px] text-slate-500 uppercase tracking-widest block font-black">OPERATOR IDENTITY:</span>
                   <span className="text-[11px] text-slate-200 font-black uppercase mt-1 block truncate">
                     {userData.name}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[9px] text-slate-500 uppercase tracking-widest block font-bold">CLEARANCE INTEGRITY:</span>
+                  <span className="text-[8px] text-slate-500 uppercase tracking-widest block font-black">CLEARANCE INTEGRITY:</span>
                   <span className="text-[11px] text-cyan-400 font-black uppercase mt-1 block">
                     SEC-LEVEL-MAX
                   </span>
                 </div>
                 <div>
-                  <span className="text-[9px] text-slate-500 uppercase tracking-widest block font-bold">SECTOR CODE:</span>
+                  <span className="text-[8px] text-slate-500 uppercase tracking-widest block font-black">SECTOR CODE:</span>
                   <span className="text-[11px] text-indigo-400 font-black uppercase mt-1 block">
                     {userData.userId}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[9px] text-slate-500 uppercase tracking-widest block font-bold">CONNECT STATUS:</span>
+                  <span className="text-[8px] text-slate-500 uppercase tracking-widest block font-black">CONNECT STATUS:</span>
                   <span className="text-[11px] text-emerald-400 font-black uppercase mt-1 block">
                     ONLINE SECURED
                   </span>
                 </div>
               </div>
 
-              {/* System Guidelines */}
-              <div className="space-y-4 mb-8">
+              {/* System Guidelines with 3D Float Depth */}
+              <div style={{ transform: "translateZ(25px)" }} className="space-y-4 mb-8">
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/15 flex items-center justify-center text-[9px] font-mono font-black shrink-0 mt-0.5">
+                  <div className="w-6 h-6 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 flex items-center justify-center text-[9px] font-mono font-black shrink-0 mt-0.5 shadow-md">
                     01
                   </div>
                   <div>
@@ -1886,7 +2277,7 @@ export default function App() {
                 </div>
 
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/15 flex items-center justify-center text-[9px] font-mono font-black shrink-0 mt-0.5">
+                  <div className="w-6 h-6 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 flex items-center justify-center text-[9px] font-mono font-black shrink-0 mt-0.5 shadow-md">
                     02
                   </div>
                   <div>
@@ -1898,19 +2289,19 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex flex-col gap-3">
+              {/* Actions with layered floating button shadows */}
+              <div style={{ transform: "translateZ(45px)" }} className="flex flex-col gap-3">
                 <a 
                   href="https://whatsapp.com/channel/0029Vb7f4Wd7DAWv9jU7zW0m" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   onClick={() => SoundCore.playTick()}
-                  className="flex items-center justify-between p-3.5 bg-emerald-950/25 hover:bg-emerald-950/35 border border-emerald-900/40 hover:border-emerald-500/60 rounded-xl transition group text-decoration-none"
+                  className="flex items-center justify-between p-3.5 bg-emerald-950/20 hover:bg-emerald-950/35 border-2 border-emerald-900/40 hover:border-emerald-500/60 rounded-xl transition group text-decoration-none shadow-[0_8px_20px_rgba(0,0,0,0.6)]"
                 >
                   <div className="flex items-center gap-2.5">
                     <span className="relative flex h-2 w-2 shrink-0">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 font-bold"></span>
                     </span>
                     <span className="text-[10px] font-mono font-black text-emerald-400 uppercase tracking-widest block truncate">
                       JOIN WHATSAPP CHANNEL FOR UPDATES
@@ -1925,10 +2316,10 @@ export default function App() {
                     sessionStorage.setItem("stand_seenBriefing", "true");
                     setShowWelcomeBriefing(false);
                   }}
-                  className="w-full relative group overflow-hidden bg-gradient-to-r from-blue-700 via-cyan-500 to-indigo-650 hover:from-blue-600 hover:to-indigo-550 text-white font-bold tracking-widest text-xs uppercase py-4 rounded-xl shadow-lg transition duration-200 cursor-pointer font-mono"
+                  className="w-full relative group overflow-hidden bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-black tracking-widest text-xs uppercase py-4 rounded-xl shadow-[0_12px_30px_-5px_rgba(6,182,212,0.45),0_4px_12px_rgba(0,0,0,0.6)] transition duration-200 cursor-pointer font-mono active:translate-y-0.5"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
-                    <Check className="w-4 h-4 text-white stroke-[2.5]" />
+                    <Check className="w-4 h-4 text-slate-950 stroke-[3]" />
                     <span>AUTHORIZE & ENTER HUD</span>
                   </span>
                 </button>
@@ -2084,6 +2475,106 @@ export default function App() {
               >
                 CANCEL SECURE CHANNEL
               </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 30-SECOND DYNAMIC 3D HIGH-FIDELITY PROMO AD MODAL */}
+      <AnimatePresence>
+        {showPromoAd && (
+          <div className="fixed inset-0 z-[100005] flex items-center justify-center p-4 [perspective:1200px]">
+            {/* Dark blur backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.85 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                SoundCore.playTick();
+                setShowPromoAd(false);
+              }}
+              className="absolute inset-0 bg-black/95 backdrop-blur-xl"
+            />
+
+            {/* Futuristic 3D Card with hardware accelerated rotation */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8, y: 80, rotateX: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0, rotateX: 3, rotateY: -1 }}
+              exit={{ opacity: 0, scale: 0.8, y: 80, rotateX: 20 }}
+              transition={{ type: "spring", damping: 18, stiffness: 140 }}
+              style={{ transformStyle: "preserve-3d" }}
+              className="relative w-full max-w-md bg-gradient-to-b from-[#11192a] to-[#040810] border-2 border-amber-500/40 rounded-[32px] p-6 md:p-8 shadow-[-20px_35px_80px_rgba(0,0,0,0.95),0_0_80px_rgba(245,158,11,0.15),inset_0_1px_2px_rgba(255,255,255,0.15)] backdrop-blur-md overflow-hidden text-center transform-gpu"
+            >
+              {/* Sci-fi vector mesh grids */}
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(245,158,11,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(245,158,11,0.015)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none rounded-[32px]" />
+              
+              {/* Cyber ambient light rings */}
+              <div className="absolute top-0 right-0 p-8 w-44 h-44 bg-gradient-to-br from-amber-500/15 to-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-orange-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+              {/* Close target button */}
+              <button 
+                onClick={() => {
+                  SoundCore.playTick();
+                  setShowPromoAd(false);
+                }}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-950/85 hover:bg-rose-500/20 border border-slate-800 hover:border-rose-500/50 flex items-center justify-center text-slate-400 hover:text-rose-400 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* Glowing visual indicator */}
+              <div style={{ transform: "translateZ(30px)" }} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-full mb-5 shadow-lg">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                <span className="text-[9px] font-mono text-amber-400 font-extrabold uppercase tracking-widest">
+                  SPECIAL SYSTEM PROMOTION
+                </span>
+              </div>
+
+              {/* 3D bouncing brand Globe icon */}
+              <div style={{ transform: "translateZ(40px)" }} className="w-16 h-16 mx-auto rounded-3xl bg-gradient-to-br from-amber-500/25 to-orange-600/10 border border-amber-500/45 flex items-center justify-center text-amber-400 shadow-[0_8px_25px_rgba(245,158,11,0.25)] mb-6 animate-bounce">
+                <Globe className="w-8 h-8" />
+              </div>
+
+              {/* Animated advertisement headline */}
+              <h3 style={{ transform: "translateZ(30px)" }} className="font-cyber text-lg font-black text-white uppercase tracking-wider mb-3 drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]">
+                BUILD YOUR BRAND ONLINE
+              </h3>
+
+              {/* Exact user wording inside ad block */}
+              <p style={{ transform: "translateZ(20px)" }} className="text-sm font-mono text-slate-200 font-black leading-relaxed mb-8 px-2 uppercase tracking-wide">
+                "Agr aap na apne name ke koye website banwane hon to neche diye gaye button par click Karein."
+              </p>
+
+              {/* Futuristic floating 3D CTA button group */}
+              <div style={{ transform: "translateZ(25px)" }} className="space-y-3">
+                <a 
+                  href="https://wa.me/923327011312?text=Assalam-o-Alaikum%20MK-MODZ%2C%20I%20want%20to%20build%20a%20website%20on%20my%20name"
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    SoundCore.playSuccessLaser();
+                    setShowPromoAd(false);
+                  }}
+                  className="w-full relative group overflow-hidden bg-gradient-to-r from-amber-500 via-orange-600 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black tracking-widest text-xs uppercase py-4 rounded-xl shadow-[0_12px_25px_-5px_rgba(245,158,11,0.35),0_4px_12px_rgba(0,0,0,0.6)] transition duration-200 cursor-pointer font-mono flex items-center justify-center gap-2 text-decoration-none active:translate-y-0.5"
+                >
+                  <MessageSquare className="w-4 h-4 text-slate-950 stroke-[3]" />
+                  <span>GET CUSTOM WEBSITE NOW</span>
+                </a>
+
+                <button 
+                  onClick={() => {
+                    SoundCore.playTick();
+                    setShowPromoAd(false);
+                  }}
+                  className="w-full py-3 bg-slate-950/60 hover:bg-slate-950 border border-slate-900 hover:border-slate-800 text-slate-500 hover:text-slate-300 font-mono text-[9px] font-black uppercase rounded-xl tracking-widest transition cursor-pointer"
+                >
+                  CONTINUE SEARCHING BYPASSES
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
