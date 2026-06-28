@@ -1121,7 +1121,7 @@ export default function App() {
                   <img 
                     src={stylishBoyImg} 
                     className="w-full h-full object-cover" 
-                    alt="SP BOYXBVSBDB"
+                    alt="❦𝐌𝆊𝐊𝆊𝐌𝆊𝐎𝆊𝐃𝆊𝐙❦"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop";
                     }}
@@ -1140,7 +1140,7 @@ export default function App() {
                     AUTHORIZED HANDSHAKE OBJECT
                   </div>
                   <h4 className="text-[10px] sm:text-[11px] text-slate-200 font-extrabold tracking-wider uppercase mt-1 truncate">
-                    SP BOYXBVSBDB 👑
+                    ❦𝐌𝆊𝐊𝆊𝐌𝆊𝐎𝆊𝐃𝆊𝐙❦ 👑
                   </h4>
                   <div className="flex items-center gap-1.5 mt-1">
                     <span className="relative flex h-1.5 w-1.5">
@@ -1701,7 +1701,7 @@ export default function App() {
                     <img 
                       src={stylishBoyImg} 
                       className="w-full h-full object-cover transition-all duration-700 hover:scale-105" 
-                      alt="SP BOYXBVSBDB"
+                      alt="❦𝐌𝆊𝐊𝆊𝐌𝆊𝐎𝆊𝐃𝆊𝐙❦"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=300&auto=format&fit=crop";
                       }}
@@ -1729,7 +1729,7 @@ export default function App() {
                         Operator Code signature
                       </div>
                       <h4 className="font-cyber text-lg font-black text-white uppercase tracking-wider mt-1 flex items-center gap-2">
-                        SP BOYXBVSBDB 👑
+                        ❦𝐌𝆊𝐊𝆊𝐌𝆊𝐎𝆊𝐃𝆊𝐙❦ 👑
                       </h4>
                     </div>
 
@@ -1744,7 +1744,7 @@ export default function App() {
                       </div>
                       <div className="p-2.5 bg-[#03060a] border border-slate-900 rounded-xl col-span-2 text-center py-3">
                         <span className="text-[7px] font-mono text-slate-400 uppercase block tracking-wider">OFFICIAL WEBSITE OWNER</span>
-                        <span className="text-[10.5px] font-mono font-extrabold text-[#ffd700] uppercase block mt-1">SP BOYXBVSBDB DIRECT LINE</span>
+                        <span className="text-[10.5px] font-mono font-extrabold text-[#ffd700] uppercase block mt-1"> ❦𝐌𝆊𝐊𝆊𝐌𝆊𝐎𝆊𝐃𝆊𝐙❦ DIRECT LINE</span>
                       </div>
                     </div>
 
@@ -1761,7 +1761,7 @@ export default function App() {
                         <span>JOIN OFFICIAL CHANNEL</span>
                       </a>
                       <a 
-                        href="https://wa.me/923259835848" 
+                        href="https://wa.me/92307499677" 
                         target="_blank" 
                         rel="noopener noreferrer"
                         onClick={() => SoundCore.playBeep()}
@@ -2582,7 +2582,7 @@ export default function App() {
               {/* Futuristic floating 3D CTA button group */}
               <div style={{ transform: "translateZ(25px)" }} className="space-y-3">
                 <a 
-                  href="https://wa.me/923327011312?text=Assalam-o-Alaikum%20MK-MODZ%2C%20I%20want%20to%20build%20a%20website%20on%20my%20name"
+                  href="https://wa.me/923307499677?text=Assalam-o-Alaikum%20MK-MODZ%2C%20I%20want%20to%20build%20a%20website%20on%20my%20name"
                   target="_blank" 
                   rel="noopener noreferrer"
                   onClick={() => {
