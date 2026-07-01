@@ -27,17 +27,27 @@ try {
 
 const DOWNLOADER_STATS_FILE = path.join(STORAGE_DIR, "downloader_stats.json");
 
+let inMemoryStats = { total_users: 3942, total_downloads: 12458 };
+
 function getDownloaderStats() {
+  if (process.env.VERCEL) {
+    return inMemoryStats;
+  }
   try {
     if (fs.existsSync(DOWNLOADER_STATS_FILE)) {
-      return JSON.parse(fs.readFileSync(DOWNLOADER_STATS_FILE, "utf-8"));
+      const content = fs.readFileSync(DOWNLOADER_STATS_FILE, "utf-8");
+      return JSON.parse(content);
     }
   } catch (e) {}
-  return { total_users: 3942, total_downloads: 12458 };
+  return inMemoryStats;
 }
 
 function incrementDownloaderStat(type: "total_users" | "total_downloads") {
   try {
+    inMemoryStats[type] = (inMemoryStats[type] || 0) + 1;
+    if (process.env.VERCEL) {
+      return;
+    }
     const s = getDownloaderStats();
     s[type] = (s[type] || 0) + 1;
     fs.writeFileSync(DOWNLOADER_STATS_FILE, JSON.stringify(s, null, 2), "utf-8");
@@ -140,6 +150,12 @@ app.get("/api/downloader/proxy-file", (req, res) => {
 
   if (!fileUrl) {
     res.status(400).send("Missing url parameter");
+    return;
+  }
+
+  // If running on Vercel, always redirect to avoid serverless payload limits (4.5MB) & timeouts.
+  if (process.env.VERCEL) {
+    res.redirect(fileUrl);
     return;
   }
 
