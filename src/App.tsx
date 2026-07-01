@@ -158,6 +158,22 @@ export default function App() {
   const [splashLogs, setSplashLogs] = useState<string[]>([]);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState<boolean>(false);
+  const [bannerImgSrc, setBannerImgSrc] = useState<string>("/src/assets/top.png");
+  const [bannerAttempt, setBannerAttempt] = useState<number>(0);
+
+  // Fallback if local top banner image doesn't exist
+  const handleBannerImageError = () => {
+    if (bannerAttempt === 0) {
+      setBannerAttempt(1);
+      setBannerImgSrc("/src/assets/top.jpg");
+    } else if (bannerAttempt === 1) {
+      setBannerAttempt(2);
+      setBannerImgSrc("/src/assets/top.jpeg");
+    } else {
+      // High-quality gold cyber aesthetic fallback banner
+      setBannerImgSrc("https://images.unsplash.com/photo-1614149162883-504ce4d13909?q=80&w=1200");
+    }
+  };
 
   // Search & Navigation
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -250,8 +266,16 @@ export default function App() {
   // Pre-load dynamic list of songs on mount
   const loadInitialVideos = async () => {
     try {
-      const res = await fetch(`/api/downloader/search?query=${encodeURIComponent("new songs hits")}`);
-      const data = await res.json();
+      let data;
+      try {
+        const res = await fetch(`/api/downloader/search?query=${encodeURIComponent("new songs hits")}`);
+        if (!res.ok) throw new Error("Local search API failed");
+        data = await res.json();
+      } catch (e) {
+        console.warn("Local search failed, falling back to public search API", e);
+        const res = await fetch(`https://apis.davidcyriltech.my.id/youtube/search?query=${encodeURIComponent("new songs hits")}`);
+        data = await res.json();
+      }
       
       let parsedResults: YouTubeVideo[] = [];
       if (data) {
@@ -360,8 +384,16 @@ export default function App() {
     setLoadMoreIndex(1);
 
     try {
-      const res = await fetch(`/api/downloader/search?query=${encodeURIComponent(searchQuery)}`);
-      const data = await res.json();
+      let data;
+      try {
+        const res = await fetch(`/api/downloader/search?query=${encodeURIComponent(searchQuery)}`);
+        if (!res.ok) throw new Error("Local API search failed");
+        data = await res.json();
+      } catch (e) {
+        console.warn("Local search failed, falling back to public search API", e);
+        const res = await fetch(`https://apis.davidcyriltech.my.id/youtube/search?query=${encodeURIComponent(searchQuery)}`);
+        data = await res.json();
+      }
       
       let parsedResults: YouTubeVideo[] = [];
       if (data) {
@@ -420,8 +452,16 @@ export default function App() {
     const nextQuery = `${activeQuery}${suffix}`;
     
     try {
-      const res = await fetch(`/api/downloader/search?query=${encodeURIComponent(nextQuery)}`);
-      const data = await res.json();
+      let data;
+      try {
+        const res = await fetch(`/api/downloader/search?query=${encodeURIComponent(nextQuery)}`);
+        if (!res.ok) throw new Error("Local load more API failed");
+        data = await res.json();
+      } catch (e) {
+        console.warn("Local load more failed, falling back to public search API", e);
+        const res = await fetch(`https://apis.davidcyriltech.my.id/youtube/search?query=${encodeURIComponent(nextQuery)}`);
+        data = await res.json();
+      }
       
       let parsedResults: YouTubeVideo[] = [];
       if (data) {
@@ -529,8 +569,16 @@ export default function App() {
 
     try {
       const targetUrl = `https://www.youtube.com/watch?v=${selectedVideo.videoId || selectedVideo.id || ""}`;
-      const res = await fetch(`/api/downloader/download?url=${encodeURIComponent(targetUrl)}&format=${selectedFormat}`);
-      const responseJson = await res.json();
+      let responseJson;
+      try {
+        const res = await fetch(`/api/downloader/download?url=${encodeURIComponent(targetUrl)}&format=${selectedFormat}`);
+        if (!res.ok) throw new Error("Local download API failed");
+        responseJson = await res.json();
+      } catch (e) {
+        console.warn("Local download failed, falling back to public download API", e);
+        const res = await fetch(`https://apis.davidcyriltech.my.id/download/savetube?url=${encodeURIComponent(targetUrl)}&format=${selectedFormat}`);
+        responseJson = await res.json();
+      }
 
       // Wait for progress animation to complete
       setTimeout(() => {
@@ -665,6 +713,25 @@ export default function App() {
             transition={{ duration: 0.5, ease: "easeOut" }}
             className="w-full max-w-5xl mx-auto px-4 py-3 md:py-4 space-y-5 relative z-30"
           >
+            {/* TOP BANNER IMAGE */}
+            <div className="relative w-full h-28 sm:h-44 rounded-3xl overflow-hidden border-2 border-amber-500/25 shadow-[0_10px_30px_rgba(0,0,0,0.8),_0_0_20px_rgba(245,158,11,0.1)] group">
+              <img 
+                src={bannerImgSrc} 
+                alt="MKMODZ Decryption Banner" 
+                onError={handleBannerImageError}
+                className="w-full h-full object-cover opacity-85 object-center transition duration-500 group-hover:scale-[1.02]"
+              />
+              {/* Shading overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#040301] via-transparent to-black/35" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#040301]/75 via-transparent to-[#040301]/40" />
+              
+              {/* Badge Overlay */}
+              <div className="absolute top-3 left-4 flex items-center gap-1.5 px-2.5 py-1 bg-black/80 border border-amber-500/35 rounded-xl">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+                <span className="text-[8.5px] font-mono text-amber-400 font-black tracking-widest uppercase">NODE ACTIVE</span>
+              </div>
+            </div>
+
             {/* MKMODZ BRANDING HEADER */}
             <header className="flex items-center justify-between gap-4 border-b border-amber-500/15 pb-4">
               <div className="flex items-center gap-3">

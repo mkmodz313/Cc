@@ -5,7 +5,6 @@ import fs from "fs";
 import https from "https";
 import http from "http";
 import { fileURLToPath } from "url";
-import { createServer as createViteServer } from "vite";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -176,6 +175,7 @@ app.get("/api/downloader/proxy-file", (req, res) => {
 // Integrate Vite as Middleware for Dev or serve static in Prod
 async function setupViteOrStatic() {
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
