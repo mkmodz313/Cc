@@ -10,9 +10,11 @@ import {
   Search,
   X,
   ShieldCheck,
-  Play
+  Play,
+  HelpCircle
 } from "lucide-react";
 import { SoundCore } from "./components/SoundCore";
+import { WelcomeDialog } from "./components/WelcomeDialog";
 
 interface YouTubeVideo {
   videoId?: string;
@@ -155,6 +157,7 @@ export default function App() {
   const [splashProgress, setSplashProgress] = useState<number>(0);
   const [splashLogs, setSplashLogs] = useState<string[]>([]);
   const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [showWelcomeDialog, setShowWelcomeDialog] = useState<boolean>(false);
 
   // Search & Navigation
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -326,6 +329,22 @@ export default function App() {
 
     return () => {
       clearInterval(interval);
+    };
+  }, [showSplash]);
+
+  // Auto-trigger welcome dialog when splash completes
+  useEffect(() => {
+    let welcomeTimer: NodeJS.Timeout | null = null;
+    if (!showSplash) {
+      const dismissed = localStorage.getItem("mkmodz_welcome_dismissed");
+      if (dismissed !== "true") {
+        welcomeTimer = setTimeout(() => {
+          setShowWelcomeDialog(true);
+        }, 500);
+      }
+    }
+    return () => {
+      if (welcomeTimer) clearTimeout(welcomeTimer);
     };
   }, [showSplash]);
 
@@ -662,14 +681,26 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Mute toggle button */}
-              <button 
-                onClick={toggleMute}
-                className="p-2 bg-amber-500/10 border border-amber-500/20 hover:border-amber-400 rounded-xl text-amber-400 transition cursor-pointer flex items-center justify-center gap-1.5"
-                title={isMuted ? "Unmute Sound" : "Mute Sound"}
-              >
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 animate-pulse" />}
-              </button>
+              {/* Header Actions */}
+              <div className="flex items-center gap-2">
+                {/* Help Manual Button */}
+                <button 
+                  onClick={() => { setShowWelcomeDialog(true); playSound("success"); }}
+                  className="p-2 bg-amber-500/10 border border-amber-500/20 hover:border-amber-400 hover:bg-amber-500/25 rounded-xl text-amber-400 transition cursor-pointer flex items-center justify-center"
+                  title="Show System Decrypter Manual"
+                >
+                  <HelpCircle className="w-4.5 h-4.5" />
+                </button>
+
+                {/* Mute toggle button */}
+                <button 
+                  onClick={toggleMute}
+                  className="p-2 bg-amber-500/10 border border-amber-500/20 hover:border-amber-400 rounded-xl text-amber-400 transition cursor-pointer flex items-center justify-center gap-1.5"
+                  title={isMuted ? "Unmute Sound" : "Mute Sound"}
+                >
+                  {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 animate-pulse" />}
+                </button>
+              </div>
             </header>
 
             {/* MAIN CORE BODY SEARCH & THEATER CONTROLLER */}
@@ -985,6 +1016,12 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <WelcomeDialog 
+        isOpen={showWelcomeDialog}
+        onClose={() => setShowWelcomeDialog(false)}
+        playSound={playSound}
+      />
     </div>
   );
 }

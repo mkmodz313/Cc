@@ -16,10 +16,14 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// Setup persistent storage dir for simulation counters
-const STORAGE_DIR = path.join(__dirname, "data");
-if (!fs.existsSync(STORAGE_DIR)) {
-  fs.mkdirSync(STORAGE_DIR, { recursive: true });
+// Setup persistent storage dir for simulation counters safely (supporting read-only on Vercel)
+const STORAGE_DIR = process.env.VERCEL ? "/tmp" : path.join(__dirname, "data");
+try {
+  if (!fs.existsSync(STORAGE_DIR)) {
+    fs.mkdirSync(STORAGE_DIR, { recursive: true });
+  }
+} catch (e) {
+  console.warn("Storage directory creation failed, falling back to memory:", e);
 }
 
 const DOWNLOADER_STATS_FILE = path.join(STORAGE_DIR, "downloader_stats.json");
@@ -49,7 +53,7 @@ app.get("/api/downloader/stats", (_req, res) => {
 // 2. Standalone PHP Endpoint
 app.get("/api/downloader/php-code", (_req, res) => {
   try {
-    const phpPath = path.join(__dirname, "index.php");
+    const phpPath = path.join(process.cwd(), "index.php");
     if (fs.existsSync(phpPath)) {
       const code = fs.readFileSync(phpPath, "utf-8");
       res.json({ success: true, code });
@@ -178,7 +182,7 @@ async function setupViteOrStatic() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(__dirname, "dist", "public");
+    const distPath = path.join(process.cwd(), "dist", "public");
     if (fs.existsSync(distPath)) {
       app.use(express.static(distPath));
       app.get("*", (_req, res) => {
