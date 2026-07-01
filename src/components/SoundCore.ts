@@ -1,241 +1,144 @@
-/**
- * Web Audio API synthesizer for high-tech UI sounds and retro-cyber matrix feedback.
- * Zero external assets, completely generated on the fly.
- * Fine-tuned for premium, ultra-clean, elegant sci-fi digital acoustics.
- */
+// Interactive high fidelity sound synthesizer using standard Web Audio APIs
+class SoundCoreClass {
+  private ctx: AudioContext | null = null;
+  private spaceHumNode: OscillatorNode | null = null;
+  private spaceHumGain: GainNode | null = null;
 
-let audioCtx: AudioContext | null = null;
-let currentHumOsc1: OscillatorNode | null = null;
-let currentHumOsc2: OscillatorNode | null = null;
-let currentHumGain: GainNode | null = null;
-
-function getAudioContext(): AudioContext {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+  private initCtx() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (this.ctx.state === "suspended") {
+      this.ctx.resume();
+    }
   }
-  if (audioCtx.state === "suspended") {
-    audioCtx.resume();
-  }
-  return audioCtx;
-}
 
-export const SoundCore = {
-  // Ultra-clean, light tactile interface tick (extremely elegant, like a high-end luxury clock)
   playTick() {
     try {
-      const ctx = getAudioContext();
-      if (ctx.state === "suspended") return;
-      
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      this.initCtx();
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
       
       osc.type = "sine";
-      osc.frequency.setValueAtTime(3500, now);
-      osc.frequency.exponentialRampToValueAtTime(1500, now + 0.012);
-      
-      gain.gain.setValueAtTime(0.015, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.015);
-      
+      osc.frequency.setValueAtTime(650, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(150, this.ctx.currentTime + 0.08);
+
+      gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(this.ctx.destination);
       osc.start();
-      osc.stop(now + 0.02);
+      osc.stop(this.ctx.currentTime + 0.08);
     } catch (e) {}
-  },
+  }
 
-  // Soft tactile premium wood keyboard click (satisfying keycap sound)
-  playKeystroke() {
-    try {
-      const ctx = getAudioContext();
-      if (ctx.state === "suspended") return;
-      
-      const now = ctx.currentTime;
-      
-      // Tone part (body)
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      const freq = 600 + Math.random() * 150;
-      osc.frequency.setValueAtTime(freq, now);
-      osc.frequency.exponentialRampToValueAtTime(150, now + 0.015);
-      
-      gain.gain.setValueAtTime(0.012, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.018);
-      
-      // Click part (transient)
-      const clickOsc = ctx.createOscillator();
-      const clickGain = ctx.createGain();
-      clickOsc.type = "triangle";
-      clickOsc.frequency.setValueAtTime(4000, now);
-      clickOsc.frequency.exponentialRampToValueAtTime(800, now + 0.005);
-      
-      clickGain.gain.setValueAtTime(0.008, now);
-      clickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.006);
-      
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      
-      clickOsc.connect(clickGain);
-      clickGain.connect(ctx.destination);
-      
-      osc.start();
-      osc.stop(now + 0.03);
-      clickOsc.start();
-      clickOsc.stop(now + 0.01);
-    } catch (e) {}
-  },
-
-  // Beautiful major-seventh chime sweep (magical, premium, high-end digital chime)
-  playSuccessLaser() {
-    try {
-      const ctx = getAudioContext();
-      if (ctx.state === "suspended") return;
-
-      const now = ctx.currentTime;
-      const notes = [1046.50, 1318.51, 1567.98, 1975.53, 2637.02]; // C6, E6, G6, B6, E7 (pure angelic crystal chime)
-      
-      notes.forEach((freq, index) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(freq, now + index * 0.04);
-        
-        // Gentle smooth envelope (fade in and exponential decay)
-        gain.gain.setValueAtTime(0.0, now + index * 0.04);
-        gain.gain.linearRampToValueAtTime(0.012, now + index * 0.04 + 0.006);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + index * 0.04 + 0.18);
-        
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        
-        osc.start(now + index * 0.04);
-        osc.stop(now + index * 0.04 + 0.2);
-      });
-    } catch (e) {}
-  },
-
-  // Elegant dampened double-pulse thud (luxury warnings, not harsh)
-  playAccessDenied() {
-    try {
-      const ctx = getAudioContext();
-      if (ctx.state === "suspended") return;
-
-      const now = ctx.currentTime;
-      const pulses = [0, 0.12]; // Elegant double heartbeat warning
-      
-      pulses.forEach((delay) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(95, now + delay);
-        osc.frequency.exponentialRampToValueAtTime(45, now + delay + 0.08);
-        
-        gain.gain.setValueAtTime(0.08, now + delay);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.1);
-        
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        
-        osc.start(now + delay);
-        osc.stop(now + delay + 0.12);
-      });
-    } catch (e) {}
-  },
-
-  // Futuristic smooth digital sliding wipe (extremely satisfying)
   playLaserSweep() {
     try {
-      const ctx = getAudioContext();
-      if (ctx.state === "suspended") return;
+      this.initCtx();
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
       
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(1600, now);
-      osc.frequency.exponentialRampToValueAtTime(440, now + 0.15);
-      
-      gain.gain.setValueAtTime(0.015, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
-      
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(now + 0.2);
-    } catch (e) {}
-  },
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.35);
 
-  // Luxurious crystal-clear high-frequency soft ping
-  playBeep(hz: number = 1200, durationSec: number = 0.08) {
+      gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.35);
+    } catch (e) {}
+  }
+
+  playSuccessLaser() {
     try {
-      const ctx = getAudioContext();
-      if (ctx.state === "suspended") return;
+      this.initCtx();
+      if (!this.ctx) return;
+      // High pitched premium bell chime
+      const now = this.ctx.currentTime;
+      const osc1 = this.ctx.createOscillator();
+      const osc2 = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc1.type = "triangle";
+      osc1.frequency.setValueAtTime(587.33, now); // D5
+      osc1.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(1174.66, now); // D6
       
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc1.start();
+      osc2.start();
+      osc1.stop(now + 0.4);
+      osc2.stop(now + 0.4);
+    } catch (e) {}
+  }
+
+  playBeep() {
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
       
       osc.type = "sine";
-      osc.frequency.setValueAtTime(hz, now);
+      osc.frequency.setValueAtTime(880, this.ctx.currentTime);
       
-      gain.gain.setValueAtTime(0.012, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + durationSec);
-      
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(now + durationSec + 0.02);
-    } catch (e) {}
-  },
+      gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
 
-  // Subtle ambient power hum (extremely low volume, pure sine blend, zero click/glitch)
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.15);
+    } catch (e) {}
+  }
+
   startSpaceHum() {
     try {
-      const ctx = getAudioContext();
-      if (currentHumOsc1) return; // Already humming
-      
-      currentHumOsc1 = ctx.createOscillator();
-      currentHumOsc2 = ctx.createOscillator();
-      currentHumGain = ctx.createGain();
-      
-      currentHumOsc1.type = "sine";
-      currentHumOsc1.frequency.setValueAtTime(50, ctx.currentTime); // Deep European standard grid hum
-      
-      currentHumOsc2.type = "sine";
-      currentHumOsc2.frequency.setValueAtTime(100, ctx.currentTime); // 1st Harmonic for rich premium texture
-      
-      // Extremely subtle gain to avoid noise complaints and browser lag
-      currentHumGain.gain.setValueAtTime(0.002, ctx.currentTime);
-      
-      currentHumOsc1.connect(currentHumGain);
-      currentHumOsc2.connect(currentHumGain);
-      currentHumGain.connect(ctx.destination);
-      
-      currentHumOsc1.start();
-      currentHumOsc2.start();
+      this.initCtx();
+      if (!this.ctx) return;
+      if (this.spaceHumNode) return; // already active
+
+      this.spaceHumNode = this.ctx.createOscillator();
+      this.spaceHumGain = this.ctx.createGain();
+
+      this.spaceHumNode.type = "sine";
+      this.spaceHumNode.frequency.setValueAtTime(45, this.ctx.currentTime); // Deep hum
+
+      this.spaceHumGain.gain.setValueAtTime(0.02, this.ctx.currentTime);
+
+      this.spaceHumNode.connect(this.spaceHumGain);
+      this.spaceHumGain.connect(this.ctx.destination);
+      this.spaceHumNode.start();
     } catch (e) {}
-  },
+  }
 
   stopSpaceHum() {
     try {
-      if (currentHumOsc1) {
-        currentHumOsc1.stop();
-        currentHumOsc1.disconnect();
-        currentHumOsc1 = null;
+      if (this.spaceHumNode) {
+        this.spaceHumNode.stop();
+        this.spaceHumNode.disconnect();
+        this.spaceHumNode = null;
       }
-      if (currentHumOsc2) {
-        currentHumOsc2.stop();
-        currentHumOsc2.disconnect();
-        currentHumOsc2 = null;
-      }
-      if (currentHumGain) {
-        currentHumGain.disconnect();
-        currentHumGain = null;
+      if (this.spaceHumGain) {
+        this.spaceHumGain.disconnect();
+        this.spaceHumGain = null;
       }
     } catch (e) {}
   }
-};
+}
+
+export const SoundCore = new SoundCoreClass();
