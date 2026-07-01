@@ -14,22 +14,6 @@ interface WelcomeDialogProps {
 
 export const WelcomeDialog: React.FC<WelcomeDialogProps> = ({ isOpen, onClose, playSound }) => {
   const [dontShowAgain, setDontShowAgain] = useState<boolean>(false);
-  const [imgSrc, setImgSrc] = useState<string>("/src/assets/welcome.png");
-  const [imgAttempt, setImgAttempt] = useState<number>(0);
-
-  // Fallback if local welcome image doesn't exist
-  const handleImageError = () => {
-    if (imgAttempt === 0) {
-      setImgAttempt(1);
-      setImgSrc("/src/assets/welcome.jpg");
-    } else if (imgAttempt === 1) {
-      setImgAttempt(2);
-      setImgSrc("/src/assets/welcome.jpeg");
-    } else {
-      // High-quality gold cyber aesthetic fallback
-      setImgSrc("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800");
-    }
-  };
 
   const handleClose = () => {
     playSound("success");
@@ -59,9 +43,8 @@ export const WelcomeDialog: React.FC<WelcomeDialogProps> = ({ isOpen, onClose, p
         {/* Header Image Area with falls-back */}
         <div className="relative aspect-[16/7] w-full bg-black/80 overflow-hidden border-b border-amber-500/15">
           <img 
-            src={imgSrc} 
+            src="/src/assets/welcome.png" 
             alt="welcome banner" 
-            onError={handleImageError}
             className="w-full h-full object-cover opacity-80 object-center transition duration-300"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0e0a05] via-transparent to-black/30" />

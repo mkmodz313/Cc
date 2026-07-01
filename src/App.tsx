@@ -158,22 +158,6 @@ export default function App() {
   const [splashLogs, setSplashLogs] = useState<string[]>([]);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState<boolean>(false);
-  const [bannerImgSrc, setBannerImgSrc] = useState<string>("/src/assets/top.png");
-  const [bannerAttempt, setBannerAttempt] = useState<number>(0);
-
-  // Fallback if local top banner image doesn't exist
-  const handleBannerImageError = () => {
-    if (bannerAttempt === 0) {
-      setBannerAttempt(1);
-      setBannerImgSrc("/src/assets/top.jpg");
-    } else if (bannerAttempt === 1) {
-      setBannerAttempt(2);
-      setBannerImgSrc("/src/assets/top.jpeg");
-    } else {
-      // High-quality gold cyber aesthetic fallback banner
-      setBannerImgSrc("https://images.unsplash.com/photo-1614149162883-504ce4d13909?q=80&w=1200");
-    }
-  };
 
   // Search & Navigation
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -583,8 +567,13 @@ export default function App() {
       // Wait for progress animation to complete
       setTimeout(() => {
         if (responseJson && responseJson.success && responseJson.data?.download_url) {
-          setDownloadUrl(responseJson.data.download_url);
+          const downloadUrlVal = responseJson.data.download_url;
+          setDownloadUrl(downloadUrlVal);
           playSound("success");
+          
+          // Direct Download: Trigger file download immediately
+          const downloadLink = `/api/downloader/proxy-file?url=${encodeURIComponent(downloadUrlVal)}&title=${encodeURIComponent(selectedVideo?.title || "download")}&format=${selectedFormat}`;
+          window.location.href = downloadLink;
         } else {
           setErrorMsg("Bypass nodes returned failed response. Try another quality.");
           setIsDecrypting(false);
@@ -716,9 +705,8 @@ export default function App() {
             {/* TOP BANNER IMAGE */}
             <div className="relative w-full h-28 sm:h-44 rounded-3xl overflow-hidden border-2 border-amber-500/25 shadow-[0_10px_30px_rgba(0,0,0,0.8),_0_0_20px_rgba(245,158,11,0.1)] group">
               <img 
-                src={bannerImgSrc} 
+                src="/src/assets/top.png" 
                 alt="MKMODZ Decryption Banner" 
-                onError={handleBannerImageError}
                 className="w-full h-full object-cover opacity-85 object-center transition duration-500 group-hover:scale-[1.02]"
               />
               {/* Shading overlays */}
@@ -980,7 +968,7 @@ export default function App() {
                             className="w-full py-4 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-cyber font-black text-xs tracking-widest rounded-2xl transition shadow-[0_4px_15px_rgba(245,158,11,0.25)] uppercase flex items-center justify-center gap-2 cursor-pointer"
                           >
                             <Lock className="w-4 h-4 text-slate-950" />
-                            <span>GENERATE GOLD DOWNLINK URL</span>
+                            <span>START DECRYPTION & DOWNLOAD</span>
                           </button>
                         )}
                       </div>

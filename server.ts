@@ -109,7 +109,7 @@ app.get("/api/downloader/search", async (req, res) => {
   }
 });
 
-// 4. Download Decryption Link Proxy API
+// 4. Download Decryption Link Proxy API with Sequential Format Fallbacks
 app.get("/api/downloader/download", async (req, res) => {
   try {
     const { url, format } = req.query as { url: string; format: string };
@@ -118,22 +118,65 @@ app.get("/api/downloader/download", async (req, res) => {
       return;
     }
 
-    const apiTarget = `https://apis.davidcyriltech.my.id/download/savetube?url=${encodeURIComponent(url)}&format=${format}`;
-    const response = await fetch(apiTarget, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
+    let data: any = null;
+    let success = false;
+
+    // 1. Primary Attempt
+    try {
+      const apiTarget = `https://apis.davidcyriltech.my.id/download/savetube?url=${encodeURIComponent(url)}&format=${format}`;
+      const response = await fetch(apiTarget, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
+        }
+      });
+      if (response.ok) {
+        data = await response.json();
+        if (data && data.success && data.data?.download_url) {
+          success = true;
+        }
       }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Savetube API returned status ${response.status}`);
+    } catch (e) {
+      console.warn("Primary download format attempt failed:", e);
     }
 
-    const data = await response.json();
-    if (data && data.success) {
+    // 2. Sequential Fallback Loop if Primary failed
+    if (!success) {
+      // If requested format was audio (mp3), we try alternate audio bitrates, then standard video.
+      // If requested format was video, we try standard video resolutions (720, 360, 1080), then audio.
+      const fallbacks = format === "mp3"
+        ? ["128", "320", "360", "720"]
+        : ["720", "360", "1080", "mp3"];
+
+      for (const fallback of fallbacks) {
+        if (fallback === format) continue;
+        try {
+          const apiTarget = `https://apis.davidcyriltech.my.id/download/savetube?url=${encodeURIComponent(url)}&format=${fallback}`;
+          const response = await fetch(apiTarget, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
+            }
+          });
+          if (response.ok) {
+            const fallbackData = await response.json();
+            if (fallbackData && fallbackData.success && fallbackData.data?.download_url) {
+              data = fallbackData;
+              success = true;
+              console.log(`Successfully recovered download URL using fallback format: ${fallback}`);
+              break;
+            }
+          }
+        } catch (err) {
+          console.warn(`Fallback format ${fallback} failed:`, err);
+        }
+      }
+    }
+
+    if (success && data) {
       incrementDownloaderStat("total_downloads");
+      res.json(data);
+    } else {
+      res.json({ success: false, error: "Bypass nodes returned failed response on all formats." });
     }
-    res.json(data);
     return;
   } catch (error: any) {
     console.error("Downloader decrypt error:", error);
@@ -150,12 +193,6 @@ app.get("/api/downloader/proxy-file", (req, res) => {
 
   if (!fileUrl) {
     res.status(400).send("Missing url parameter");
-    return;
-  }
-
-  // If running on Vercel, always redirect to avoid serverless payload limits (4.5MB) & timeouts.
-  if (process.env.VERCEL) {
-    res.redirect(fileUrl);
     return;
   }
 
